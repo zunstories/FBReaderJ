@@ -33,6 +33,7 @@ import org.geometerplus.android.fbreader.OrientationUtil;
 abstract class ZLPreferenceActivity extends android.preference.PreferenceActivity {
 	public static String SCREEN_KEY = "screen";
 
+	protected final HashMap<Integer,Preference> myPrefMap = new HashMap<Integer,Preference>();
 	private final HashMap<String,Screen> myScreenMap = new HashMap<String,Screen>();
 
 	protected class Screen {

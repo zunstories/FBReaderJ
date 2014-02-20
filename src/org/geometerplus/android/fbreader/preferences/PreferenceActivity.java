@@ -49,10 +49,36 @@ import org.geometerplus.android.fbreader.libraryService.BookCollectionShadow;
 
 import org.geometerplus.android.util.DeviceType;
 
+import android.os.Parcelable;
+import android.content.Intent;
+import java.io.File;
+import group.pals.android.lib.ui.filechooser.FileChooserActivity;
+import group.pals.android.lib.ui.filechooser.io.localfile.LocalFile;
+import android.preference.Preference;
+
 public class PreferenceActivity extends ZLPreferenceActivity {
-	public PreferenceActivity() {
+	private final HashMap<Integer,Preference> myPreferenceMap = new HashMap<Integer,Preference>();
+    private static final int BOOKS_CHOOSER_CODE = 501; 
+    private static final int FONTS_CHOOSER_CODE = 502; 
+    private static final int WALLPAPER_CHOOSER_CODE = 503; 
+	
+    public PreferenceActivity() {
 		super("Preferences");
 	}
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(resultCode == RESULT_OK){
+            String path = (String)data.getSerializableExtra(FileChooserActivity._FolderPath);
+            for(HashMap.Entry<Integer, Preference> entry : myPreferenceMap.entrySet()) {
+                if(entry.getKey() == requestCode){
+                    final Preference ref = entry.getValue();
+                    ref.setSummary(path);
+                    break;
+                }
+            }
+        }
+    }
 
 	@Override
 	protected void init(Intent intent) {
@@ -80,15 +106,15 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 		// or set user-defined locale as default
 		final String decimalSeparator =
 			String.valueOf(new DecimalFormatSymbols(Locale.getDefault()).getDecimalSeparator());
-
+        
 		final Screen directoriesScreen = createPreferenceScreen("directories");
-		directoriesScreen.addPreference(new ZLStringListOptionPreference(
-			this, Paths.BookPathOption, directoriesScreen.Resource, "books"
-		) {
-			protected void setValue(String value) {
+        ZLFileChooserPreference fileChooserRef = new ZLFileChooserPreference(
+            this, directoriesScreen.Resource, "books", Paths.BookPathOption, BOOKS_CHOOSER_CODE
+        ){
+            protected void setValue(String value) {
 				super.setValue(value);
-
-				final BookCollectionShadow collection = new BookCollectionShadow();
+				
+                final BookCollectionShadow collection = new BookCollectionShadow();
 				collection.bindToService(PreferenceActivity.this, new Runnable() {
 					public void run() {
 						collection.reset(false);
@@ -96,13 +122,19 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 					}
 				});
 			}
-		});
-		directoriesScreen.addPreference(new ZLStringListOptionPreference(
-			this, Paths.FontPathOption, directoriesScreen.Resource, "fonts"
-		));
-		directoriesScreen.addPreference(new ZLStringListOptionPreference(
-			this, Paths.WallpaperPathOption, directoriesScreen.Resource, "wallpapers"
-		));
+        };
+        directoriesScreen.addPreference(fileChooserRef);
+        myPreferenceMap.put(BOOKS_CHOOSER_CODE, fileChooserRef);
+		
+        fileChooserRef = new ZLFileChooserPreference(
+			this, directoriesScreen.Resource, "fonts", Paths.FontPathOption, FONTS_CHOOSER_CODE);
+        directoriesScreen.addPreference(fileChooserRef);
+        myPreferenceMap.put(FONTS_CHOOSER_CODE, fileChooserRef);
+
+		fileChooserRef = new ZLFileChooserPreference(
+			this, directoriesScreen.Resource, "wallpapers", Paths.WallpaperPathOption, WALLPAPER_CHOOSER_CODE);
+        directoriesScreen.addPreference(fileChooserRef);
+        myPreferenceMap.put(WALLPAPER_CHOOSER_CODE, fileChooserRef);
 
 		final Screen appearanceScreen = createPreferenceScreen("appearance");
 		appearanceScreen.addPreference(new LanguagePreference(
