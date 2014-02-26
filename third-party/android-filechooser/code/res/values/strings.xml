@@ -64,5 +64,6 @@
     <string name="afc_title_size">Size</string>
     <string name="afc_title_sort_by">Sort by…</string>
     <string name="afc_yesterday">Yesterday</string>
+    <string name="afc_msg_app_cant_create_folder">Can\'t create folder in this directory</string>
 
 </resources>

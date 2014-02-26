@@ -37,7 +37,7 @@ public interface IFile extends Parcelable {
      *         empty
      */
     String getName();
-
+    boolean isWrite();
     /**
      * Tests whether the file denoted by this abstract pathname is a directory.
      * 

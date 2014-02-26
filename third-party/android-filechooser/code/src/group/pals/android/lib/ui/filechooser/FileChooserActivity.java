@@ -997,6 +997,13 @@ public class FileChooserActivity extends Activity {
             Dlg.toast(this, R.string.afc_msg_app_doesnot_have_permission_to_create_files, Dlg._LengthShort);
             return;
         }
+        
+        if ((getLocation() instanceof File)){
+            if(!((File)getLocation()).canWrite()){
+                Dlg.toast(this, R.string.afc_msg_app_cant_create_folder, Dlg._LengthShort);
+                return;
+            }
+        }
 
         final AlertDialog _dlg = Dlg.newDlg(this);
 
