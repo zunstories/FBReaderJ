@@ -65,5 +65,6 @@
     <string name="afc_title_sort_by">Sort by…</string>
     <string name="afc_yesterday">Yesterday</string>
     <string name="afc_msg_app_cant_create_folder">Can\'t create folder in this directory</string>
+    <string name="afc_msg_app_cant_choose_folder">Can\'t choose this folder</string>
 
 </resources>

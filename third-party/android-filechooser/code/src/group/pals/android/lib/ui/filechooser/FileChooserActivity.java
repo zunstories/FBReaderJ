@@ -1661,6 +1661,12 @@ public class FileChooserActivity extends Activity {
     private final View.OnClickListener mBtnOk_ActionBar_OnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            if ((getLocation() instanceof File)){
+                if(!((File)getLocation()).canWrite()){
+                    Dlg.toast(FileChooserActivity.this, R.string.afc_msg_app_cant_choose_folder, Dlg._LengthShort);
+                    return;
+                }
+            }
             doFinish();
             FileChooserActivity.this.finish();
         }

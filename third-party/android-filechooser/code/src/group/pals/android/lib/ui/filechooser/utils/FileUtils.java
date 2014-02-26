@@ -11,6 +11,7 @@ import group.pals.android.lib.ui.filechooser.R;
 import group.pals.android.lib.ui.filechooser.io.IFile;
 import group.pals.android.lib.ui.filechooser.services.IFileProvider;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,8 +57,13 @@ public class FileUtils {
                     return _MapFileIcons.get(r);
 
             return R.drawable.afc_file;
-        } else if (file.isDirectory())
-            return R.drawable.afc_folder;
+        } else if (file.isDirectory()){
+            if(file instanceof File && !((File)file).canWrite()){
+                return R.drawable.afc_folder_locked;
+            }else{
+                return R.drawable.afc_folder;
+            }
+        }
 
         return android.R.drawable.ic_delete;
     }// getResIcon()
