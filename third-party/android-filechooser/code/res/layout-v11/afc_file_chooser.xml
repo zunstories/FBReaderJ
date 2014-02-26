@@ -118,7 +118,7 @@
             android:layout_height="@dimen/afc_viewgroup_button_locations_bottom_divider_height" />
 
         <LinearLayout
-            android:id="@+id/afc_filechooser_activity_viewgroup_footer"
+            android:id="@+id/afc_filechooser_activity_viewgroup_footer2"
             style="?android:attr/buttonBarStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -142,7 +142,7 @@
             </EditText>
 
             <Button
-                android:id="@+id/afc_filechooser_activity_button_ok"
+                android:id="@+id/afc_filechooser_activity_button_save"
                 style="?android:attr/buttonBarButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -150,6 +150,36 @@
                 android:layout_margin="@dimen/afc_5dp"
                 android:visibility="gone" />
         </LinearLayout>
+        <LinearLayout
+            android:id="@+id/afc_filechooser_activity_viewgroup_footer_bottom"
+            style="?android:attr/buttonBarStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:visibility="gone" >
+            <Button
+                android:id="@+id/afc_filechooser_activity_button_ok"
+                style="?android:attr/buttonBarButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:text="Ok"    
+            />
+            <Button
+                android:id="@+id/afc_filechooser_activity_button_cancel"
+                style="?android:attr/buttonBarButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:text="Cancel"    
+            />
+        </LinearLayout>
+
     </LinearLayout>
 
 </RelativeLayout>

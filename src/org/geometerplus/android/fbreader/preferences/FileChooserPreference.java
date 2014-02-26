@@ -53,6 +53,7 @@ public abstract class FileChooserPreference extends Preference {
 	protected void onClick() {
         Intent intent = new Intent(getContext(), FileChooserActivity.class);
         intent.putExtra(FileChooserActivity._Rootpath, (Parcelable)new LocalFile(getPath()));
+        intent.putExtra(FileChooserActivity._ActionBar, true);
         intent.putExtra(FileChooserActivity._FileSelectionMode, false);
         intent.putExtra(FileChooserActivity._SaveLastLocation, false);
         ((Activity)getContext()).startActivityForResult(intent, myRegCode);

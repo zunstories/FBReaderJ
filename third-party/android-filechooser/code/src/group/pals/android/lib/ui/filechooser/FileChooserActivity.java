@@ -209,6 +209,7 @@ public class FileChooserActivity extends Activity {
      * Key to hold property save-dialog, default = {@code false}
      */
     public static final String _SaveDialog = _ClassName + ".save_dialog";
+    public static final String _ActionBar = _ClassName + ".action_bar";
     /**
      * Key to hold default filename, default = {@code null}
      */
@@ -254,10 +255,10 @@ public class FileChooserActivity extends Activity {
     private IFile mRoot;
     private boolean mIsMultiSelection;
     private boolean mIsSaveDialog;
+    private boolean mIsActionBar;
     private boolean mIsFileSelectionMode;
     private boolean mIsSaveLastLocation;
     private boolean mDoubleTapToChooseFiles;
-    private int mBackCounter = 1;
     private Toast mToast = null;
 
     /**
@@ -285,7 +286,9 @@ public class FileChooserActivity extends Activity {
     private TextView mTxtFullDirName;
     private AbsListView mViewFiles;
     private TextView mFooterView;
+    private Button mBtnSave;
     private Button mBtnOk;
+    private Button mBtnCancel;
     private EditText mTxtSaveas;
     private ImageView mViewGoBack;
     private ImageView mViewGoForward;
@@ -321,6 +324,7 @@ public class FileChooserActivity extends Activity {
 
         mIsMultiSelection = getIntent().getBooleanExtra(_MultiSelection, false);
 
+        mIsActionBar = getIntent().getBooleanExtra(_ActionBar, false);
         mIsSaveDialog = getIntent().getBooleanExtra(_SaveDialog, false);
         if (mIsSaveDialog)
             mIsMultiSelection = false;
@@ -341,7 +345,9 @@ public class FileChooserActivity extends Activity {
         mViewFilesContainer = (ViewGroup) findViewById(R.id.afc_filechooser_activity_view_files_container);
         mFooterView = (TextView) findViewById(R.id.afc_filechooser_activity_view_files_footer_view);
         mTxtSaveas = (EditText) findViewById(R.id.afc_filechooser_activity_textview_saveas_filename);
+        mBtnSave = (Button) findViewById(R.id.afc_filechooser_activity_button_save);
         mBtnOk = (Button) findViewById(R.id.afc_filechooser_activity_button_ok);
+        mBtnCancel = (Button) findViewById(R.id.afc_filechooser_activity_button_cancel);
 
         // history
         if (savedInstanceState != null && savedInstanceState.get(_History) instanceof HistoryStore<?>)
@@ -472,19 +478,13 @@ public class FileChooserActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if(!mIsFileSelectionMode){
-            if(mBackCounter <= 0){
-                if(mToast != null){
-                    mToast.cancel();
-                }
-                doFinish();
-                super.onBackPressed();
-            }else{
-                mToast = Toast.makeText(getApplicationContext(), "Press again to choose this folder.", Toast.LENGTH_SHORT);
-                mToast.show();
-            }
-            mBackCounter--;
-        }else{
+        IFile currentLoc = getLocation();
+        IFile preLoc = null;
+        while (currentLoc.equalsToPath(preLoc = mHistory.prevOf(currentLoc)))
+            mHistory.remove(preLoc);
+        if (preLoc != null) {
+            goTo(preLoc);
+        } else {
             super.onBackPressed();
         }
     }
@@ -790,8 +790,9 @@ public class FileChooserActivity extends Activity {
         // by default, view group footer and all its child views are hidden
 
         ViewGroup viewGroupFooterContainer = (ViewGroup) findViewById(R.id.afc_filechooser_activity_viewgroup_footer_container);
-        ViewGroup viewGroupFooter = (ViewGroup) findViewById(R.id.afc_filechooser_activity_viewgroup_footer);
-
+        ViewGroup viewGroupFooter = (ViewGroup) findViewById(R.id.afc_filechooser_activity_viewgroup_footer2);
+        ViewGroup viewGroupFooterBottom = (ViewGroup) findViewById(R.id.afc_filechooser_activity_viewgroup_footer_bottom);
+        
         if (mIsSaveDialog) {
             viewGroupFooterContainer.setVisibility(View.VISIBLE);
             viewGroupFooter.setVisibility(View.VISIBLE);
@@ -800,31 +801,38 @@ public class FileChooserActivity extends Activity {
             mTxtSaveas.setText(getIntent().getStringExtra(_DefaultFilename));
             mTxtSaveas.setOnEditorActionListener(mTxtFilenameOnEditorActionListener);
 
-            mBtnOk.setVisibility(View.VISIBLE);
-            mBtnOk.setOnClickListener(mBtnOk_SaveDialog_OnClickListener);
-            mBtnOk.setBackgroundResource(R.drawable.afc_selector_button_ok_saveas);
-
+            mBtnSave.setVisibility(View.VISIBLE);
+            mBtnSave.setOnClickListener(mBtnSave_SaveDialog_OnClickListener);
+            mBtnSave.setBackgroundResource(R.drawable.afc_selector_button_ok_saveas);
+            
             int size = getResources().getDimensionPixelSize(R.dimen.afc_button_ok_saveas_size);
-            LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mBtnOk.getLayoutParams();
+            LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mBtnSave.getLayoutParams();
             lp.width = size;
             lp.height = size;
-            mBtnOk.setLayoutParams(lp);
+            mBtnSave.setLayoutParams(lp);
         }// this is in save mode
-        else {
-            if (mIsMultiSelection) {
-                viewGroupFooterContainer.setVisibility(View.VISIBLE);
-                viewGroupFooter.setVisibility(View.VISIBLE);
+        if(mIsActionBar){
+            viewGroupFooterContainer.setVisibility(View.VISIBLE);
+            viewGroupFooterBottom.setVisibility(View.VISIBLE);
+            mBtnOk.setVisibility(View.VISIBLE);
+            mBtnOk.setOnClickListener(mBtnOk_ActionBar_OnClickListener);
+            mBtnCancel.setVisibility(View.VISIBLE);
+            mBtnCancel.setOnClickListener(mBtnCancel_ActionBar_OnClickListener);
+        }    
+        
+        if (mIsMultiSelection) {
+            viewGroupFooterContainer.setVisibility(View.VISIBLE);
+            viewGroupFooter.setVisibility(View.VISIBLE);
 
-                ViewGroup.LayoutParams lp = viewGroupFooter.getLayoutParams();
-                lp.width = ViewGroup.LayoutParams.WRAP_CONTENT;
-                viewGroupFooter.setLayoutParams(lp);
+            ViewGroup.LayoutParams lp = viewGroupFooter.getLayoutParams();
+            lp.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+            viewGroupFooter.setLayoutParams(lp);
 
-                mBtnOk.setMinWidth(getResources().getDimensionPixelSize(R.dimen.afc_single_button_min_width));
-                mBtnOk.setText(android.R.string.ok);
-                mBtnOk.setVisibility(View.VISIBLE);
-                mBtnOk.setOnClickListener(mBtnOk_OpenDialog_OnClickListener);
-            }
-        }// this is in open mode
+            mBtnSave.setMinWidth(getResources().getDimensionPixelSize(R.dimen.afc_single_button_min_width));
+            mBtnSave.setText(android.R.string.ok);
+            mBtnSave.setVisibility(View.VISIBLE);
+            mBtnSave.setOnClickListener(mBtnSave_OpenDialog_OnClickListener);
+        }
     }// setupFooter()
 
     private void doReloadCurrentLocation() {
@@ -1421,9 +1429,9 @@ public class FileChooserActivity extends Activity {
                 View divider = inflater.inflate(R.layout.afc_view_locations_divider, null);
 
                 if (lpDivider == null) {
-                    lpDivider = new LinearLayout.LayoutParams(_dim, _dim);
+                    lpDivider = new LinearLayout.LayoutParams(_dim, _dim+15);
                     lpDivider.gravity = Gravity.CENTER;
-                    lpDivider.setMargins(_dim, _dim, _dim, _dim);
+                    //lpDivider.setMargins(_dim, _dim, _dim, _dim);
                 }
                 mViewLocations.addView(divider, 0, lpDivider);
             }
@@ -1636,24 +1644,38 @@ public class FileChooserActivity extends Activity {
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 Ui.hideSoftKeyboard(FileChooserActivity.this, mTxtSaveas.getWindowToken());
-                mBtnOk.performClick();
+                mBtnSave.performClick();
                 return true;
             }
             return false;
         }
     };// mTxtFilenameOnEditorActionListener
+    
+    private final View.OnClickListener mBtnOk_ActionBar_OnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            doFinish();
+            FileChooserActivity.this.finish();
+        }
+    };// mBtnOk_ActionBar_OnClickListener
 
-    private final View.OnClickListener mBtnOk_SaveDialog_OnClickListener = new View.OnClickListener() {
+    private final View.OnClickListener mBtnCancel_ActionBar_OnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            FileChooserActivity.this.finish();
+        }
+    };// mBtnOk_ActionBar_OnClickListener
 
+    private final View.OnClickListener mBtnSave_SaveDialog_OnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             Ui.hideSoftKeyboard(FileChooserActivity.this, mTxtSaveas.getWindowToken());
             String filename = mTxtSaveas.getText().toString().trim();
             doCheckSaveasFilenameAndFinish(filename);
         }
-    };// mBtnOk_SaveDialog_OnClickListener
+    };// mBtnSave_SaveDialog_OnClickListener
 
-    private final View.OnClickListener mBtnOk_OpenDialog_OnClickListener = new View.OnClickListener() {
+    private final View.OnClickListener mBtnSave_OpenDialog_OnClickListener = new View.OnClickListener() {
 
         @Override
         public void onClick(View v) {
@@ -1669,7 +1691,7 @@ public class FileChooserActivity extends Activity {
             }
             doFinish((ArrayList<IFile>) list);
         }
-    };// mBtnOk_OpenDialog_OnClickListener
+    };// mBtnSave_OpenDialog_OnClickListener
 
     /*
      * LIST VIEW HELPER
