@@ -2,8 +2,8 @@
 <manifest
 		xmlns:android="http://schemas.android.com/apk/res/android"
 		package="org.geometerplus.zlibrary.ui.android"
-		android:versionCode="1090621"
-		android:versionName="1.9.6.1"
+		android:versionCode="1090720"
+		android:versionName="1.9.7"
 		android:installLocation="auto"
 >
 	<uses-sdk
@@ -265,13 +265,9 @@
 		</receiver>
 		<activity android:name="org.geometerplus.android.fbreader.tips.TipsActivity" android:theme="@style/FBReader.Dialog" android:configChanges="orientation|keyboardHidden|screenSize"/>
 		<activity android:name="com.paragon.dictionary.fbreader.OpenDictionaryActivity" android:theme="@style/FBReader.Transparent" android:configChanges="orientation|keyboardHidden|screenSize"/>
-        <service android:name="group.pals.android.lib.ui.filechooser.services.LocalFileProvider" />
-        <activity
-            android:name="group.pals.android.lib.ui.filechooser.FileChooserActivity"
-            android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
-            android:theme="@style/FBReader.Dialog"
-            android:screenOrientation="user" >
-        </activity>
+		<service android:name="org.geometerplus.android.fbreader.httpd.DataService" android:launchMode="singleTask" android:process=":dataService" android:exported="false"/>
+		<service android:name="group.pals.android.lib.ui.filechooser.services.LocalFileProvider" />
+		<activity android:name="group.pals.android.lib.ui.filechooser.FileChooserActivity" android:configChanges="orientation|screenSize|keyboard|keyboardHidden" android:theme="@style/FBReader.Dialog" android:screenOrientation="user"/>
 		<service android:name="com.yotadevices.fbreader.FBReaderYotaService" android:exported="false" android:launchMode="singleTask"/>
 		<uses-library android:required="false" android:name="com.yotadevices.platinum"/>
 		<meta-data android:name="com.yotadevices.BS_ICON" android:resource="@drawable/fbreader_bs_icon"/>

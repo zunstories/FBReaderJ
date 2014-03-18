@@ -259,7 +259,7 @@
 		<node name="clearSelection" value="Убрать пометку"/>
 	</node>
 	<node name="sharing">
-		<node name="sharedFrom" value="Отправлено из &lt;a href=&quot;http://fbreader.ru/&quot;&gt;FBReader&lt;/a&gt;"/>
+		<node name="sharedFrom" value="Отправлено из &lt;a href=&quot;http://ru.fbreader.org/&quot;&gt;FBReader&lt;/a&gt;"/>
 	</node>
 	<node name="menu">
 		<node name="preferences" value="Настройки"/>
@@ -737,7 +737,7 @@
 			<node name="summary" value="Версия, контакты"/>
 			<node name="version" value="Версия"/>
 			<node name="site" value="Наш веб-сайт">
-				<node name="url" value="http://fbreader.ru/"/>
+				<node name="url" value="http://ru.fbreader.org/"/>
 			</node>
 			<node name="email" value="Отправьте нам письмо">
 				<node name="url" value="mailto:contact@geometerplus.com"/>
@@ -858,12 +858,13 @@
 		</node>
 	</node>
 	<node name="errorMessage">
-		<node name="nativeCodeFailure" value="Error %s in native code during reading '%s'" toBeTranslated="true"/>
+		<node name="nativeCodeFailure" value="Ошибка %s в нативном коде при чтении '%s'"/>
 		<node name="errorReadingFile" value="Ошибка при чтении '%s'"/>
 		<node name="errorReadingZip" value="Ошибка при разархивировании '%s'"/>
 		<node name="pluginNotFound" value="Нет плагина для '%s'"/>
 		<node name="unknownPluginType" value="Неизвестный тип плагина: %s"/>
 		<node name="fileNotFound" value="Не найти файл: %s"/>
+		<node name="unsupportedEncryptionMethod" value="Файл %s зашифрован методом, неизвестным FBReader. Некоторые или все страницы могут быть недоступны"/>
 		<node name="opfFileNotFound" value="Не удалось найти OPF в %s"/>
 		<node name="unsupportedFileFormat" value="Не поддерживается формат файла '%s'"/>
 		<node name="errorParsingRtf" value="Ошибка при чтении RTF-файла %s"/>
@@ -879,6 +880,7 @@
 		<node name="emptyCatalog" value="Каталог пуст"/>
 		<node name="emptyBasket" value="В корзине нет книг"/>
 		<node name="emptyNetworkSearchResults" value="Не найдено ни одной книги"/>
+		<node name="videoPlayerNotFound" value="Не удалось отыскать видеопроигрыватель"/>
 	</node>
 	<node name="external">
 		<node name="browser" value="браузере"/>
@@ -905,7 +907,7 @@
 		</node>
 	</node>
 	<node name="links">
-		<node name="faqPage" value="http://fbreader.ru/faq-page"/>
+		<node name="faqPage" value="http://ru.fbreader.org/faq-page"/>
 	</node>
 	<node name="plugins" value="Дополнительные модули">
 		<node name="noMorePlugins" value="Извините, но прямо сейчас у нас нет новых модулей"/>

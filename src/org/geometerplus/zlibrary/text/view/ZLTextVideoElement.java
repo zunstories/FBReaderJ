@@ -17,22 +17,14 @@
  * 02110-1301, USA.
  */
 
-package org.geometerplus.zlibrary.core.application;
+package org.geometerplus.zlibrary.text.view;
 
-import org.geometerplus.zlibrary.core.view.ZLViewWidget;
+import java.util.Map;
 
-public interface ZLApplicationWindow {
-	void setWindowTitle(String title);
-	void showErrorMessage(String resourceKey);
-	void showErrorMessage(String resourceKey, String parameter);
-	void runWithMessage(String key, Runnable runnable, Runnable postAction);
-	void processException(Exception e);
+public final class ZLTextVideoElement extends ZLTextElement {
+	public final Map<String,String> Sources;
 
-	void refresh();
-
-	ZLViewWidget getViewWidget();
-
-	void close();
-
-	int getBatteryLevel();
+	ZLTextVideoElement(Map<String,String> sources) {
+		Sources = sources;
+	}
 }

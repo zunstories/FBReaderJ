@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2014 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2004-2014 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,22 +17,22 @@
  * 02110-1301, USA.
  */
 
-package org.geometerplus.zlibrary.core.application;
+#ifndef __ZLVIDEOENTRY_H__
+#define __ZLVIDEOENTRY_H__
 
-import org.geometerplus.zlibrary.core.view.ZLViewWidget;
+#include <map>
+#include <string>
 
-public interface ZLApplicationWindow {
-	void setWindowTitle(String title);
-	void showErrorMessage(String resourceKey);
-	void showErrorMessage(String resourceKey, String parameter);
-	void runWithMessage(String key, Runnable runnable, Runnable postAction);
-	void processException(Exception e);
+#include <ZLTextParagraph.h>
 
-	void refresh();
+class ZLVideoEntry : public ZLTextParagraphEntry {
 
-	ZLViewWidget getViewWidget();
+public:
+	void addSource(const std::string &type, const std::string &path);
+	const std::map<std::string,std::string> &sources() const;
 
-	void close();
+private:
+	std::map<std::string,std::string> mySources;
+};
 
-	int getBatteryLevel();
-}
+#endif /* __ZLVIDEOENTRY_H__ */

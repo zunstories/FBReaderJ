@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2014 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2014 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,22 +17,13 @@
  * 02110-1301, USA.
  */
 
-package org.geometerplus.zlibrary.core.application;
+package org.geometerplus.zlibrary.text.view;
 
-import org.geometerplus.zlibrary.core.view.ZLViewWidget;
+public class ZLTextVideoRegionSoul extends ZLTextRegion.Soul {
+	public final ZLTextVideoElement VideoElement;
 
-public interface ZLApplicationWindow {
-	void setWindowTitle(String title);
-	void showErrorMessage(String resourceKey);
-	void showErrorMessage(String resourceKey, String parameter);
-	void runWithMessage(String key, Runnable runnable, Runnable postAction);
-	void processException(Exception e);
-
-	void refresh();
-
-	ZLViewWidget getViewWidget();
-
-	void close();
-
-	int getBatteryLevel();
+	ZLTextVideoRegionSoul(ZLTextPosition position, ZLTextVideoElement videoElement) {
+		super(position.getParagraphIndex(), position.getElementIndex(), position.getElementIndex());
+		VideoElement = videoElement;
+	}
 }

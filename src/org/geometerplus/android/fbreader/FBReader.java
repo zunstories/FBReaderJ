@@ -213,6 +213,8 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 		super.onCreate(icicle);
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler(this));
 
+		startService(new Intent(this, org.geometerplus.android.fbreader.httpd.DataService.class));
+
 		final Config config = Config.Instance();
 		config.runOnStart(new Runnable() {
 			public void run() {
@@ -299,6 +301,7 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 		myFBReaderApp.addAction(ActionCode.SELECTION_BOOKMARK, new SelectionBookmarkAction(this, myFBReaderApp));
 
 		myFBReaderApp.addAction(ActionCode.PROCESS_HYPERLINK, new ProcessHyperlinkAction(this, myFBReaderApp));
+		myFBReaderApp.addAction(ActionCode.OPEN_VIDEO, new OpenVideoAction(this, myFBReaderApp));
 
 		myFBReaderApp.addAction(ActionCode.SHOW_CANCEL_MENU, new ShowCancelMenuAction(this, myFBReaderApp));
 
@@ -528,6 +531,7 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 	@Override
 	protected void onDestroy() {
 		getCollection().unbind();
+		stopService(new Intent(this, org.geometerplus.android.fbreader.httpd.DataService.class));
 		super.onDestroy();
 	}
 
@@ -898,6 +902,16 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 	}
 
 	// methods from ZLApplicationWindow interface
+	@Override
+	public void showErrorMessage(String key) {
+		UIUtil.showErrorMessage(this, key);
+	}
+
+	@Override
+	public void showErrorMessage(String key, String parameter) {
+		UIUtil.showErrorMessage(this, key, parameter);
+	}
+
 	@Override
 	public void runWithMessage(String key, Runnable action, Runnable postAction) {
 		UIUtil.runWithMessage(this, key, action, postAction, false);
