@@ -71,7 +71,7 @@ public class BookInfoActivity extends Activity implements MenuItem.OnMenuItemCli
 
 		final Intent intent = getIntent();
 		myDontReloadBook = intent.getBooleanExtra(FROM_READING_MODE_KEY, false);
-		myBook = bookByIntent(intent);
+		myBook = FBReaderIntents.getBookExtra(intent);
 
 		final ActionBar bar = getActionBar();
 		if (bar != null) {
@@ -115,15 +115,6 @@ public class BookInfoActivity extends Activity implements MenuItem.OnMenuItemCli
 		myCollection.unbind();
 
 		super.onDestroy();
-	}
-
-	public static Intent intentByBook(Book book) {
-		return new Intent().putExtra(FBReader.BOOK_KEY, SerializerUtil.serialize(book));
-	}
-
-	public static Book bookByIntent(Intent intent) {
-		return intent != null ?
-			SerializerUtil.deserializeBook(intent.getStringExtra(FBReader.BOOK_KEY)) : null;
 	}
 
 	private Button findButton(int buttonId) {
@@ -340,12 +331,13 @@ public class BookInfoActivity extends Activity implements MenuItem.OnMenuItemCli
 				}
 				return true;
 			case EDIT_INFO:
-				OrientationUtil.startActivity(
-					this,
-					new Intent(getApplicationContext(), EditBookInfoActivity.class)
-						.putExtra(FBReader.BOOK_KEY, SerializerUtil.serialize(myBook))
-				);
+			{
+				final Intent intent =
+					new Intent(getApplicationContext(), EditBookInfoActivity.class);
+				FBReaderIntents.putBookExtra(intent, myBook);
+				OrientationUtil.startActivity(this, intent);
 				return true;
+			}
 			case SHARE_BOOK:
 				FBUtil.shareBook(this, myBook);
 				return true;

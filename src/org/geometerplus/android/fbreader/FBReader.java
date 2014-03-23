@@ -64,12 +64,6 @@ import org.geometerplus.android.fbreader.tips.TipsActivity;
 import org.geometerplus.android.util.*;
 
 public final class FBReader extends Activity implements ZLApplicationWindow {
-	public static final String ACTION_OPEN_BOOK = "android.fbreader.action.VIEW";
-	public static final String ACTION_OPEN_PLUGIN = "android.fbreader.action.PLUGIN";
-	public static final String BOOK_KEY = "fbreader.book";
-	public static final String BOOKMARK_KEY = "fbreader.bookmark";
-	public static final String PLUGIN_KEY = "fbreader.plugin";
-
 	static final int ACTION_BAR_COLOR = Color.DKGRAY;
 
 	public static final int REQUEST_PREFERENCES = 1;
@@ -79,13 +73,12 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 	public static final int RESULT_REPAINT = RESULT_FIRST_USER + 1;
 
 	public static void openBookActivity(Context context, Book book, Bookmark bookmark) {
-		context.startActivity(
-			new Intent(context, FBReader.class)
-				.setAction(ACTION_OPEN_BOOK)
-				.putExtra(BOOK_KEY, SerializerUtil.serialize(book))
-				.putExtra(BOOKMARK_KEY, SerializerUtil.serialize(bookmark))
-				.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-		);
+		final Intent intent = new Intent(context, FBReader.class)
+			.setAction(FBReaderIntents.Action.VIEW)
+			.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		FBReaderIntents.putBookExtra(intent, book);
+		FBReaderIntents.putBookmarkExtra(intent, bookmark);
+		context.startActivity(intent);
 	}
 
 	private static ZLAndroidLibrary getZLibrary() {
@@ -136,9 +129,8 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 			return;
 		}
 
-		myBook = SerializerUtil.deserializeBook(intent.getStringExtra(BOOK_KEY));
-		final Bookmark bookmark =
-			SerializerUtil.deserializeBookmark(intent.getStringExtra(BOOKMARK_KEY));
+		myBook = FBReaderIntents.getBookExtra(intent);
+		final Bookmark bookmark = FBReaderIntents.getBookmarkExtra(intent);
 		if (myBook == null) {
 			final Uri data = intent.getData();
 			if (data != null) {
@@ -199,7 +191,7 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 						new TipRunner().start();
 						DictionaryUtil.init(FBReader.this, null);
 						final Intent intent = getIntent();
-						if (intent != null && ACTION_OPEN_PLUGIN.equals(intent.getAction())) {
+						if (intent != null && FBReaderIntents.Action.PLUGIN.equals(intent.getAction())) {
 							new RunPluginAction(FBReader.this, myFBReaderApp, intent.getData()).run();
 						}
 					}
@@ -330,13 +322,13 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 		} else if (Intent.ACTION_VIEW.equals(action)
 				   && data != null && "fbreader-action".equals(data.getScheme())) {
 			myFBReaderApp.runAction(data.getEncodedSchemeSpecificPart(), data.getFragment());
-		} else if (Intent.ACTION_VIEW.equals(action) || ACTION_OPEN_BOOK.equals(action)) {
+		} else if (Intent.ACTION_VIEW.equals(action) || FBReaderIntents.Action.VIEW.equals(action)) {
 			getCollection().bindToService(this, new Runnable() {
 				public void run() {
 					openBook(intent, null, true);
 				}
 			});
-		} else if (ACTION_OPEN_PLUGIN.equals(action)) {
+		} else if (FBReaderIntents.Action.PLUGIN.equals(action)) {
 			new RunPluginAction(this, myFBReaderApp, data).run();
 		} else if (Intent.ACTION_SEARCH.equals(action)) {
 			final String pattern = intent.getStringExtra(SearchManager.QUERY);
@@ -597,7 +589,7 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 			case REQUEST_PREFERENCES:
 				if (resultCode != RESULT_DO_NOTHING) {
 					invalidateOptionsMenu();
-					final Book book = BookInfoActivity.bookByIntent(data);
+					final Book book = data != null ? FBReaderIntents.getBookExtra(data) : null;
 					if (book != null) {
 						getCollection().bindToService(this, new Runnable() {
 							public void run() {
@@ -617,7 +609,7 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 		final CancelMenuHelper.ActionType type;
 		try {
 			type = CancelMenuHelper.ActionType.valueOf(
-				intent.getStringExtra(CancelActivity.TYPE_KEY)
+				intent.getStringExtra(FBReaderIntents.Key.TYPE)
 			);
 		} catch (Exception e) {
 			// invalid (or null) type value
@@ -625,19 +617,15 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 		}
 		Bookmark bookmark = null;
 		if (type == CancelMenuHelper.ActionType.returnTo) {
-			try {
-				bookmark = SerializerUtil.deserializeBookmark(
-					intent.getStringExtra(CancelActivity.BOOKMARK_KEY)
-				);
-			} catch (Exception e) {
-				// invalid (or null) bookmark value
+			bookmark = FBReaderIntents.getBookmarkExtra(intent);
+			if (bookmark == null) {
 				return;
 			}
 		}
 		myFBReaderApp.runCancelAction(type, bookmark);
 	}
 
-	private Menu addSubMenu(Menu menu, String id) {
+	private Menu addSubmenu(Menu menu, String id) {
 		return menu.addSubMenu(ZLResource.resource("menu").getResource(id).getValue());
 	}
 
@@ -670,34 +658,25 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 		addMenuItem(menu, actionId, null, null, false);
 	}
 
+	private void fillMenu(Menu menu, List<MenuNode> nodes) {
+		for (MenuNode n : nodes) {
+			if (n instanceof MenuNode.Item) {
+				final Integer iconId = ((MenuNode.Item)n).IconId;
+				if (iconId != null) {
+					addMenuItem(menu, n.Code, iconId);
+				} else {
+					addMenuItem(menu, n.Code);
+				}
+			} else /* if (n instanceof MenuNode.Submenu) */ {
+				final Menu submenu = addSubmenu(menu, n.Code);
+				fillMenu(submenu, ((MenuNode.Submenu)n).Children);
+			}
+		}
+	}
+
 	private void setupMenu(Menu menu) {
-		addMenuItem(menu, ActionCode.SHOW_LIBRARY, R.drawable.ic_menu_library);
-		if (DeviceType.Instance() == DeviceType.YOTA_PHONE) {
-			addMenuItem(menu, ActionCode.YOTA_SWITCH_TO_BACK_SCREEN, R.drawable.ic_menu_p2b);
-			//addMenuItem(menu, ActionCode.YOTA_SWITCH_TO_FRONT_SCREEN, R.drawable.ic_menu_p2b);
-		}
-		addMenuItem(menu, ActionCode.SHOW_NETWORK_LIBRARY, R.drawable.ic_menu_networklibrary);
-		addMenuItem(menu, ActionCode.SHOW_TOC, R.drawable.ic_menu_toc);
-		addMenuItem(menu, ActionCode.SHOW_BOOKMARKS, R.drawable.ic_menu_bookmarks);
-		addMenuItem(menu, ActionCode.SWITCH_TO_NIGHT_PROFILE, R.drawable.ic_menu_night);
-		addMenuItem(menu, ActionCode.SWITCH_TO_DAY_PROFILE, R.drawable.ic_menu_day);
-		addMenuItem(menu, ActionCode.SEARCH, R.drawable.ic_menu_search);
-		addMenuItem(menu, ActionCode.SHARE_BOOK, R.drawable.ic_menu_search);
-		addMenuItem(menu, ActionCode.SHOW_PREFERENCES);
-		addMenuItem(menu, ActionCode.SHOW_BOOK_INFO);
-		final Menu subMenu = addSubMenu(menu, "screenOrientation");
-		addMenuItem(subMenu, ActionCode.SET_SCREEN_ORIENTATION_SYSTEM);
-		addMenuItem(subMenu, ActionCode.SET_SCREEN_ORIENTATION_SENSOR);
-		addMenuItem(subMenu, ActionCode.SET_SCREEN_ORIENTATION_PORTRAIT);
-		addMenuItem(subMenu, ActionCode.SET_SCREEN_ORIENTATION_LANDSCAPE);
-		if (ZLibrary.Instance().supportsAllOrientations()) {
-			addMenuItem(subMenu, ActionCode.SET_SCREEN_ORIENTATION_REVERSE_PORTRAIT);
-			addMenuItem(subMenu, ActionCode.SET_SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
-		}
-		addMenuItem(menu, ActionCode.INCREASE_FONT);
-		addMenuItem(menu, ActionCode.DECREASE_FONT);
-		addMenuItem(menu, ActionCode.INSTALL_PLUGINS);
-		addMenuItem(menu, ActionCode.OPEN_WEB_HELP);
+		fillMenu(menu, MenuData.topLevelNodes());
+
 		synchronized (myPluginActions) {
 			int index = 0;
 			for (PluginApi.ActionInfo info : myPluginActions) {
@@ -981,7 +960,7 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 		exception.printStackTrace();
 
 		final Intent intent = new Intent(
-			"android.fbreader.action.ERROR",
+			FBReaderIntents.Action.ERROR,
 			new Uri.Builder().scheme(exception.getClass().getSimpleName()).build()
 		);
 		intent.putExtra(ErrorKeys.MESSAGE, exception.getMessage());
@@ -1020,10 +999,7 @@ public final class FBReader extends Activity implements ZLApplicationWindow {
 			myFBReaderApp.ViewOptions.YotaDrawOnBackScreen.getValue()
 		);
 		if (myFBReaderApp.Model != null) {
-			intent.putExtra(
-				FBReaderYotaService.KEY_CURRENT_BOOK,
-				SerializerUtil.serialize(myFBReaderApp.Model.Book)
-			);
+			FBReaderIntents.putBookExtra(intent, myFBReaderApp.Model.Book);
 		}
 		try {
 			startService(intent);

@@ -26,16 +26,19 @@ import android.content.Intent;
 
 import org.geometerplus.zlibrary.core.library.ZLibrary;
 import org.geometerplus.zlibrary.core.options.Config;
+import org.geometerplus.zlibrary.core.resources.ZLResource;
 
 import org.geometerplus.zlibrary.text.view.*;
 
 import org.geometerplus.fbreader.book.*;
 import org.geometerplus.fbreader.fbreader.*;
 
+import org.geometerplus.android.fbreader.*;
+
 public class ApiServerImplementation extends ApiInterface.Stub implements Api, ApiMethods {
 	public static void sendEvent(ContextWrapper context, String eventType) {
 		context.sendBroadcast(
-			new Intent(ApiClientImplementation.ACTION_API_CALLBACK)
+			new Intent(FBReaderIntents.Action.API_CALLBACK)
 				.putExtra(ApiClientImplementation.EVENT_TYPE, eventType)
 		);
 	}
@@ -218,6 +221,14 @@ public class ApiServerImplementation extends ApiInterface.Stub implements Api, A
 				case DELETE_ZONEMAP:
 					deleteZoneMap(((ApiObject.String)parameters[0]).Value);
 					return ApiObject.Void.Instance;
+				case GET_RESOURCE_STRING:
+				{
+					final String[] stringParams = new String[parameters.length];
+					for (int i = 0; i < parameters.length; ++i) {
+						stringParams[i] = ((ApiObject.String)parameters[i]).Value;
+					}
+					return ApiObject.envelope(getResourceString(stringParams));
+				}
 				default:
 					return unsupportedMethodError(method);
 			}
@@ -257,6 +268,8 @@ public class ApiServerImplementation extends ApiInterface.Stub implements Api, A
 					return ApiObject.envelopeIntegerList(getParagraphWordIndices(
 						((ApiObject.Integer)parameters[0]).Value
 					));
+				case GET_MAIN_MENU_CONTENT:
+					return ApiObject.envelopeSerializableList(getMainMenuContent());
 				default:
 					return Collections.<ApiObject>singletonList(unsupportedMethodError(method));
 			}
@@ -576,5 +589,18 @@ public class ApiServerImplementation extends ApiInterface.Stub implements Api, A
 
 	public void setTapZoneAction(String name, int h, int v, boolean singleTap, String action) {
 		TapZoneMap.zoneMap(name).setActionForZone(h, v, singleTap, action);
+	}
+
+	public List<MenuNode> getMainMenuContent() {
+		return MenuData.topLevelNodes();
+	}
+
+	public String getResourceString(String ... keys) {
+		System.err.println("getResourceString: " + keys);
+		ZLResource resource = ZLResource.resource(keys[0]);
+		for (int i = 1; i < keys.length; ++i) {
+			resource = resource.getResource(keys[i]);
+		}
+		return resource.getValue();
 	}
 }
