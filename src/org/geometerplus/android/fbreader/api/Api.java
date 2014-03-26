@@ -7,7 +7,7 @@ package org.geometerplus.android.fbreader.api;
 import java.util.List;
 import java.util.Date;
 
-import org.geometerplus.android.fbreader.MenuNode;
+import android.graphics.Bitmap;
 
 public interface Api {
 	// information about fbreader
@@ -90,4 +90,5 @@ public interface Api {
 
 	List<MenuNode> getMainMenuContent() throws ApiException;
 	String getResourceString(String ... keys) throws ApiException; 
+	Bitmap getBitmap(int resourceId) throws ApiException;
 }

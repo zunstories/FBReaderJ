@@ -21,9 +21,14 @@
 #define __STYLESHEETPARSER_H__
 
 #include <list>
+#include <set>
+
+#include <shared_ptr.h>
+#include <FileEncryptionInfo.h>
 
 #include "StyleSheetTable.h"
 
+class ZLFile;
 class ZLInputStream;
 
 class StyleSheetParser {
@@ -38,6 +43,8 @@ public:
 
 protected:
 	virtual void storeData(const std::string &selector, const StyleSheetTable::AttributeMap &map);
+	std::string url2FullPath(const std::string &url) const;
+	virtual void importCSS(const std::string &path);
 
 private:
 	bool isControlSymbol(const char symbol);
@@ -54,6 +61,7 @@ private:
 	enum {
 		WAITING_FOR_SELECTOR,
 		SELECTOR,
+		IMPORT,
 		WAITING_FOR_ATTRIBUTE,
 		ATTRIBUTE_NAME,
 		ATTRIBUTE_VALUE,
@@ -61,6 +69,8 @@ private:
 	bool myInsideComment;
 	std::string mySelectorString;
 	StyleSheetTable::AttributeMap myMap;
+	std::vector<std::string> myImportVector;
+	bool myFirstRuleProcessed;
 
 friend class StyleSheetSingleStyleParser;
 };
@@ -112,14 +122,17 @@ private:
 	};
 
 public:
-	StyleSheetParserWithCache(const std::string &pathPrefix);
+	StyleSheetParserWithCache(const ZLFile &file, const std::string &pathPrefix, shared_ptr<EncryptionMap> encryptionMap);
 	void applyToTable(StyleSheetTable &table) const;
 
 private:
 	void store(const std::string &tag, const std::string &aClass, const StyleSheetTable::AttributeMap &map);
+	void importCSS(const std::string &path);
 
 private:
 	std::list<shared_ptr<Entry> > myEntries;
+	std::set<std::string> myProcessedFiles;
+	shared_ptr<EncryptionMap> myEncryptionMap;
 };
 
 inline StyleSheetParserWithCache::Entry::Entry(const std::string &tag, const std::string &aClass, const StyleSheetTable::AttributeMap &map) : Tag(tag), Class(aClass), Map(map) {

@@ -266,10 +266,14 @@ void XHTMLTagLinkAction::doAtStart(XHTMLReader &reader, const char **xmlattribut
 	cssFilePath = cssFile.path();
 	shared_ptr<StyleSheetParserWithCache> parser = reader.myFileParsers[cssFilePath];
 	if (parser.isNull()) {
-		parser = new StyleSheetParserWithCache(MiscUtil::htmlDirectoryPrefix(cssFilePath));
+		parser = new StyleSheetParserWithCache(
+			cssFile,
+			MiscUtil::htmlDirectoryPrefix(cssFilePath),
+			reader.myEncryptionMap
+		);
 		reader.myFileParsers[cssFilePath] = parser;
 		ZLLogger::Instance().println("CSS", "creating stream");
-		shared_ptr<ZLInputStream> cssStream = ZLFile(cssFilePath).inputStream(reader.myEncryptionMap);
+		shared_ptr<ZLInputStream> cssStream = cssFile.inputStream(reader.myEncryptionMap);
 		if (!cssStream.isNull()) {
 			ZLLogger::Instance().println("CSS", "parsing file");
 			parser->parseStream(*cssStream);
@@ -398,7 +402,7 @@ void XHTMLTagImageAction::doAtStart(XHTMLReader &reader, const char **xmlattribu
 	}
 	const std::string imageName = imageFile.name(false);
 	bookReader(reader).addImageReference(imageName, 0, reader.myMarkNextImageAsCover);
-	bookReader(reader).addImage(imageName, new ZLFileImage(imageFile, "", 0));
+	bookReader(reader).addImage(imageName, new ZLFileImage(imageFile, "", 0, 0, reader.myEncryptionMap->info(imageFile.path())));
 	reader.myMarkNextImageAsCover = false;
 	if (flagParagraphIsOpen && reader.myCurrentParagraphIsEmpty) {
 		bookReader(reader).addControl(IMAGE, false);

@@ -17,55 +17,51 @@
  * 02110-1301, USA.
  */
 
-package org.geometerplus.android.fbreader;
+package org.geometerplus.android.fbreader.api;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public abstract class MenuNode implements Serializable {
+public abstract class MenuNode implements Cloneable, Serializable {
 	public final String Code;
+	public String OptionalTitle;
 
 	private MenuNode(String code) {
 		Code = code;
 	}
 
-	public abstract MenuNode findByCode(String code);
+	public abstract MenuNode clone();
 
 	public static final class Item extends MenuNode {
 		public final Integer IconId;
 	
-		Item(String code, Integer iconId) {
+		public Item(String code, Integer iconId) {
 			super(code);
 			IconId = iconId;
 		}
 
-		Item(String code) {
+		public Item(String code) {
 			this(code, null);
 		}
 
-		public MenuNode findByCode(String code) {
-			return Code.equals(code) ? this : null;
+		public Item clone() {
+			return new Item(Code, IconId);
 		}
 	}
 
 	public static class Submenu extends MenuNode {
 		public final ArrayList<MenuNode> Children = new ArrayList<MenuNode>();
 
-		Submenu(String code) {
+		public Submenu(String code) {
 			super(code);
 		}
 
-		public MenuNode findByCode(String code) {
-			if (Code.equals(code)) {
-				return this;
-			}
+		public Submenu clone() {
+			final Submenu copy = new Submenu(Code);
 			for (MenuNode node : Children) {
-				MenuNode candidate = node.findByCode(code);
-				if (candidate != null) {
-					return candidate;
-				}
+				copy.Children.add(node.clone());
 			}
-			return null;
+			return copy;
 		}
 	}
 }

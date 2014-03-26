@@ -21,11 +21,14 @@ package org.geometerplus.android.fbreader.api;
 
 import java.util.*;
 
-import android.content.ContextWrapper;
-import android.content.Intent;
+import android.content.*;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
+import org.geometerplus.zlibrary.core.application.ZLKeyBindings;
 import org.geometerplus.zlibrary.core.library.ZLibrary;
 import org.geometerplus.zlibrary.core.options.Config;
+import org.geometerplus.zlibrary.core.options.ZLStringOption;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 
 import org.geometerplus.zlibrary.text.view.*;
@@ -43,7 +46,14 @@ public class ApiServerImplementation extends ApiInterface.Stub implements Api, A
 		);
 	}
 
+	private final Context myContext;
 	private volatile FBReaderApp myReader;
+	private final ZLKeyBindings myBindings = new ZLKeyBindings();
+
+	ApiServerImplementation(Context context) {
+		myContext = context;
+	}
+
 	private synchronized FBReaderApp getReader() {
 		if (myReader == null) {
 			myReader = (FBReaderApp)FBReaderApp.Instance();
@@ -229,6 +239,8 @@ public class ApiServerImplementation extends ApiInterface.Stub implements Api, A
 					}
 					return ApiObject.envelope(getResourceString(stringParams));
 				}
+				case GET_BITMAP:
+					return ApiObject.envelope(getBitmap(((ApiObject.Integer)parameters[0]).Value));
 				default:
 					return unsupportedMethodError(method);
 			}
@@ -308,11 +320,11 @@ public class ApiServerImplementation extends ApiInterface.Stub implements Api, A
 	}
 
 	public String getOptionValue(String group, String name) {
-		return Config.Instance().getValue(group, name, null);
+		return new ZLStringOption(group, name, null).getValue();
 	}
 
 	public void setOptionValue(String group, String name, String value) {
-		// TODO: implement
+		new ZLStringOption(group, name, null).setValue(value);
 	}
 
 	public String getBookLanguage() {
@@ -535,8 +547,7 @@ public class ApiServerImplementation extends ApiInterface.Stub implements Api, A
 	}
 
 	public String getKeyAction(int key, boolean longPress) {
-		// TODO: implement
-		return null;
+		return myBindings.getBinding(key, longPress);
 	}
 
 	public void setKeyAction(int key, boolean longPress, String action) {
@@ -591,16 +602,34 @@ public class ApiServerImplementation extends ApiInterface.Stub implements Api, A
 		TapZoneMap.zoneMap(name).setActionForZone(h, v, singleTap, action);
 	}
 
+	private void setMenuTitles(List<MenuNode> nodes, ZLResource menuResource) {
+		for (MenuNode n : nodes) {
+			n.OptionalTitle = menuResource.getResource(n.Code).getValue();
+			if (n instanceof MenuNode.Submenu) {
+				setMenuTitles(((MenuNode.Submenu)n).Children, menuResource);
+			}
+		}
+	}
+			
 	public List<MenuNode> getMainMenuContent() {
-		return MenuData.topLevelNodes();
+		final List<MenuNode> nodes = MenuData.topLevelNodes();
+		final List<MenuNode> copies = new ArrayList<MenuNode>(nodes.size());
+		for (MenuNode n : nodes) {
+			copies.add(n.clone());
+		}
+		setMenuTitles(copies, ZLResource.resource("menu"));
+		return copies;
 	}
 
 	public String getResourceString(String ... keys) {
-		System.err.println("getResourceString: " + keys);
 		ZLResource resource = ZLResource.resource(keys[0]);
 		for (int i = 1; i < keys.length; ++i) {
 			resource = resource.getResource(keys[i]);
 		}
 		return resource.getValue();
+	}
+
+	public Bitmap getBitmap(int resourceId) {
+		return BitmapFactory.decodeResource(myContext.getResources(), resourceId);
 	}
 }

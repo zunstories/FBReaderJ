@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2014 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2014 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,15 +17,18 @@
  * 02110-1301, USA.
  */
 
-package org.geometerplus.android.fbreader.api;
+package org.geometerplus.zlibrary.core.drm;
 
-import android.app.Service;
-import android.content.Intent;
-import android.os.IBinder;
+public class FileEncryptionInfo {
+	public final String Uri;
+	public final String Method;
+	public final String Algorithm;
+	public final String ContentId;
 
-public class ApiService extends Service {
-	@Override
-	public IBinder onBind(Intent intent) {
-		return new ApiServerImplementation(this);
+	public FileEncryptionInfo(String uri, String method, String algorithm, String contentId) {
+		Uri = uri;
+		Method = method;
+		Algorithm = algorithm;
+		ContentId = contentId;
 	}
 }

@@ -17,15 +17,8 @@
  * 02110-1301, USA.
  */
 
-package org.geometerplus.android.fbreader.api;
+package org.geometerplus.android.fbreader.httpd;
 
-import android.app.Service;
-import android.content.Intent;
-import android.os.IBinder;
-
-public class ApiService extends Service {
-	@Override
-	public IBinder onBind(Intent intent) {
-		return new ApiServerImplementation(this);
-	}
+interface DataInterface {
+	int getPort();
 }

@@ -29,6 +29,7 @@
 #include "../util/MiscUtil.h"
 
 StyleSheetParser::StyleSheetParser(const std::string &pathPrefix) : myPathPrefix(pathPrefix) {
+	//ZLLogger::Instance().registerClass("CSS-IMPORT");
 	reset();
 }
 
@@ -42,6 +43,8 @@ void StyleSheetParser::reset() {
 	myInsideComment = false;
 	mySelectorString.erase();
 	myMap.clear();
+	myImportVector.clear();
+	myFirstRuleProcessed = false;
 }
 
 void StyleSheetParser::parse(const char *text, int len, bool final) {
@@ -81,6 +84,8 @@ bool StyleSheetParser::isControlSymbol(const char symbol) {
 			return false;
 		case SELECTOR:
 			return symbol == '{' || symbol == ';';
+		case IMPORT:
+			return symbol == ';';
 		case WAITING_FOR_ATTRIBUTE:
 			return symbol == '}' || symbol == ':';
 		case ATTRIBUTE_NAME:
@@ -93,6 +98,23 @@ bool StyleSheetParser::isControlSymbol(const char symbol) {
 void StyleSheetParser::storeData(const std::string&, const StyleSheetTable::AttributeMap&) {
 }
 
+std::string StyleSheetParser::url2FullPath(const std::string &url) const {
+	std::string path = url;
+	if (ZLStringUtil::stringStartsWith(path, "url(") &&
+			ZLStringUtil::stringEndsWith(path, ")")) {
+		path = path.substr(4, path.size() - 5);
+	}
+	if (path.size() > 2 && path[0] == path[path.size() - 1]) {
+		if (path[0] == '\'' || path[0] == '"') {
+			path = path.substr(1, path.size() - 2);
+		}
+	}
+	return myPathPrefix + MiscUtil::decodeHtmlURL(path);
+}
+
+void StyleSheetParser::importCSS(const std::string &path) {
+}
+
 void StyleSheetParser::processControl(const char control) {
 	switch (myReadState) {
 		case WAITING_FOR_SELECTOR:
@@ -101,11 +123,27 @@ void StyleSheetParser::processControl(const char control) {
 			switch (control) {
 				case '{':
 					myReadState = WAITING_FOR_ATTRIBUTE;
+					myFirstRuleProcessed = true;
 					break;
 				case ';':
 					myReadState = WAITING_FOR_SELECTOR;
 					mySelectorString.erase();
 					break;
+			}
+			break;
+		case IMPORT:
+			if (control == ';') {
+				if (!myImportVector.empty()) {
+					if (myFirstRuleProcessed) {
+						ZLLogger::Instance().println(
+							"CSS-IMPORT", "Ignore import after style rule " + myImportVector[0]
+						);
+					} else {
+						importCSS(url2FullPath(myImportVector[0]));
+					}
+					myImportVector.clear();
+				}
+				myReadState = WAITING_FOR_SELECTOR;
 			}
 			break;
 		case WAITING_FOR_ATTRIBUTE:
@@ -155,11 +193,18 @@ void StyleSheetParser::processWord(std::string &word) {
 void StyleSheetParser::processWordWithoutComments(const std::string &word) {
 	switch (myReadState) {
 		case WAITING_FOR_SELECTOR:
-			myReadState = SELECTOR;
 			mySelectorString = word;
+			if (word == "@import") {
+				myReadState = IMPORT;
+			} else {
+				myReadState = SELECTOR;
+			}
 			break;
 		case SELECTOR:
 			mySelectorString += ' ' + word;
+			break;
+		case IMPORT:
+			myImportVector.push_back(word);
 			break;
 		case WAITING_FOR_ATTRIBUTE:
 			myReadState = ATTRIBUTE_NAME;
@@ -240,26 +285,21 @@ void StyleSheetMultiStyleParser::processAtRule(const std::string &name, const St
 			return;
 		}
 		const StyleSheetTable::AttributeMap::const_iterator it = attributes.find("src");
-		std::string url;
+		std::string path;
 		if (it != attributes.end()) {
 			for (std::vector<std::string>::const_iterator jt = it->second.begin(); jt != it->second.end(); ++jt) {
 				if (ZLStringUtil::stringStartsWith(*jt, "url(") &&
 						ZLStringUtil::stringEndsWith(*jt, ")")) {
-					url = jt->substr(4, jt->size() - 5);
-					if (url.size() > 2 && url[0] == url[url.size() - 1]) {
-						if (url[0] == '\'' || url[0] == '"') {
-							url = url.substr(1, url.size() - 2);
-						}
-					}
+					path = url2FullPath(*jt);	
 					break;
 				}
 			}
 		}
-		if (url.empty()) {
+		if (path.empty()) {
 			ZLLogger::Instance().println("FONT", "Source not specified for " + family);
 			return;
 		}
-		const ZLFile fontFile(myPathPrefix + MiscUtil::decodeHtmlURL(url));
+		const ZLFile fontFile(path);
 		const bool bold = firstValue(attributes, "font-weight") == "bold";
 		const bool italic = firstValue(attributes, "font-style") == "italic";
 		ZLLogger::Instance().println("FONT", family + " => " + fontFile.path());
@@ -288,11 +328,31 @@ void StyleSheetTableParser::store(const std::string &tag, const std::string &aCl
 	myTable.addMap(tag, aClass, map);
 }
 
-StyleSheetParserWithCache::StyleSheetParserWithCache(const std::string &pathPrefix) : StyleSheetMultiStyleParser(pathPrefix) {
+StyleSheetParserWithCache::StyleSheetParserWithCache(const ZLFile &file, const std::string &pathPrefix, shared_ptr<EncryptionMap> encryptionMap) : StyleSheetMultiStyleParser(pathPrefix), myEncryptionMap(encryptionMap) {
+	myProcessedFiles.insert(file.path());
 }
 
 void StyleSheetParserWithCache::store(const std::string &tag, const std::string &aClass, const StyleSheetTable::AttributeMap &map) {
 	myEntries.push_back(new Entry(tag, aClass, map));
+}
+
+void StyleSheetParserWithCache::importCSS(const std::string &path) {
+	const ZLFile fileToImport(path);
+	if (myProcessedFiles.find(fileToImport.path()) != myProcessedFiles.end()) {
+		ZLLogger::Instance().println(
+			"CSS-IMPORT", "File " + fileToImport.path() + " is already processed, do skip"
+		);
+		return;
+	}
+	ZLLogger::Instance().println("CSS-IMPORT", "Go to process imported file " + fileToImport.path());
+	shared_ptr<ZLInputStream> stream = fileToImport.inputStream(myEncryptionMap);
+	if (!stream.isNull()) {
+		StyleSheetParserWithCache importParser(fileToImport, myPathPrefix, myEncryptionMap);
+		importParser.myProcessedFiles.insert(myProcessedFiles.begin(), myProcessedFiles.end());
+		importParser.parseStream(*stream);
+		myEntries.insert(myEntries.end(), importParser.myEntries.begin(), importParser.myEntries.end()); 
+	}
+	myProcessedFiles.insert(fileToImport.path());
 }
 
 void StyleSheetParserWithCache::applyToTable(StyleSheetTable &table) const {
