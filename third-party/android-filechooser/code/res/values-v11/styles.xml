@@ -23,5 +23,4 @@
         <item name="android:gravity">center</item>
         <item name="android:textAppearance">?android:attr/textAppearanceMedium</item>
     </style>
-
 </resources>

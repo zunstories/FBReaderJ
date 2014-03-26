@@ -1410,11 +1410,10 @@ public class FileChooserActivity extends Activity {
         lpBtnLoc.gravity = Gravity.CENTER;
         LinearLayout.LayoutParams lpDivider = null;
         LayoutInflater inflater = getLayoutInflater();
-        final int _dim = getResources().getDimensionPixelSize(R.dimen.afc_5dp);
         int count = 0;
         while (path != null) {
             TextView btnLoc = (TextView) inflater.inflate(R.layout.afc_button_location, null);
-            btnLoc.setText(path.parentFile() != null ? path.getName() : getString(R.string.afc_root));
+            btnLoc.setText(path.parentFile() != null ? "/"+path.getName() : getString(R.string.afc_root));
             btnLoc.setTag(path);
             btnLoc.setOnClickListener(mBtnLocationOnClickListener);
             btnLoc.setOnLongClickListener(mBtnLocationOnLongClickListener);
@@ -1432,16 +1431,6 @@ public class FileChooserActivity extends Activity {
             }
 
             path = path.parentFile();
-            if (path != null) {
-                View divider = inflater.inflate(R.layout.afc_view_locations_divider, null);
-
-                if (lpDivider == null) {
-                    lpDivider = new LinearLayout.LayoutParams(_dim, _dim+15);
-                    lpDivider.gravity = Gravity.CENTER;
-                    //lpDivider.setMargins(_dim, _dim, _dim, _dim);
-                }
-                mViewLocations.addView(divider, 0, lpDivider);
-            }
         }
 
         mViewLocationsContainer.postDelayed(new Runnable() {
