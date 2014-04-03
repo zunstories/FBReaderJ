@@ -19,11 +19,11 @@
 
 package org.geometerplus.fbreader.network.opds;
 
-import java.io.*;
 import java.util.*;
+import java.io.*;
 
-import org.geometerplus.zlibrary.core.money.Money;
 import org.geometerplus.zlibrary.core.network.*;
+import org.geometerplus.zlibrary.core.money.Money;
 import org.geometerplus.zlibrary.core.util.MimeType;
 import org.geometerplus.zlibrary.core.util.ZLNetworkUtil;
 
@@ -152,8 +152,8 @@ public class OPDSBookItem extends NetworkBookItem implements OPDSConstants {
 			} else if (referenceType == UrlInfo.Type.TOC) {
 				urls.addInfo(new UrlInfo(referenceType, href, mime));
 			} else if (referenceType != null) {
-				final BookUrlInfo.Format format = formatByMimeType(mime);
-				if (!BookUrlInfo.Format.NONE.equals(format)) {
+				final int format = formatByMimeType(mime);
+				if (format != BookUrlInfo.Format.NONE) {
 					urls.addInfo(new BookUrlInfo(referenceType, format, href, mime));
 				}
 			}
@@ -194,8 +194,8 @@ public class OPDSBookItem extends NetworkBookItem implements OPDSConstants {
 		boolean added = false;
 		for (String f : opdsLink.Formats) {
 			final MimeType mime = MimeType.get(f);
-			final BookUrlInfo.Format format = formatByMimeType(mime);
-			if (!BookUrlInfo.Format.NONE.equals(format)) {
+			final int format = formatByMimeType(mime);
+			if (format != BookUrlInfo.Format.NONE) {
 				urls.addInfo(new BookBuyUrlInfo(type, format, href, mime, price));
 				added = true;
 			}
@@ -205,14 +205,14 @@ public class OPDSBookItem extends NetworkBookItem implements OPDSConstants {
 		}
 	}
 
-	static BookUrlInfo.Format formatByMimeType(MimeType mime) {
-		if (MimeType.TYPES_FB2.contains(mime)) {
+	static int formatByMimeType(MimeType mime) {
+		if (MimeType.TEXT_FB2.equals(mime)) {
 			return BookUrlInfo.Format.FB2;
-		} else if (MimeType.TYPES_FB2_ZIP.contains(mime)) {
+		} else if (MimeType.APP_FB2_ZIP.equals(mime)) {
 			return BookUrlInfo.Format.FB2_ZIP;
-		} else if (MimeType.TYPES_EPUB.contains(mime)) {
+		} else if (MimeType.APP_EPUB_ZIP.equals(mime)) {
 			return BookUrlInfo.Format.EPUB;
-		} else if (MimeType.TYPES_MOBIPOCKET.contains(mime)) {
+		} else if (MimeType.APP_MOBIPOCKET.equals(mime)) {
 			return BookUrlInfo.Format.MOBIPOCKET;
 		}
 		return BookUrlInfo.Format.NONE;

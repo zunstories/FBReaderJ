@@ -21,27 +21,20 @@ package org.geometerplus.fbreader.fbreader.options;
 
 import java.util.*;
 
-import org.geometerplus.zlibrary.core.options.Config;
 import org.geometerplus.zlibrary.core.options.ZLBooleanOption;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 
 import org.geometerplus.fbreader.book.*;
 
 public class CancelMenuHelper {
-	private final static String GROUP_NAME = "CancelMenu";
-
 	public final ZLBooleanOption ShowLibraryItemOption =
-		new ZLBooleanOption(GROUP_NAME, "library", true);
+		new ZLBooleanOption("CancelMenu", "library", false);
 	public final ZLBooleanOption ShowNetworkLibraryItemOption =
-		new ZLBooleanOption(GROUP_NAME, "networkLibrary", true);
+		new ZLBooleanOption("CancelMenu", "networkLibrary", false);
 	public final ZLBooleanOption ShowPreviousBookItemOption =
-		new ZLBooleanOption(GROUP_NAME, "previousBook", false);
+		new ZLBooleanOption("CancelMenu", "previousBook", false);
 	public final ZLBooleanOption ShowPositionItemsOption =
-		new ZLBooleanOption(GROUP_NAME, "positions", true);
-
-	public CancelMenuHelper() {
-		Config.Instance().requestAllValuesForGroup(GROUP_NAME);
-	}
+		new ZLBooleanOption("CancelMenu", "positions", true);
 
 	public static enum ActionType {
 		library,

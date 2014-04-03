@@ -48,22 +48,13 @@ public class NativeFormatPlugin extends FormatPlugin {
 
 	@Override
 	synchronized public void readMetaInfo(Book book) throws BookReadingException {
-		final int code = readMetaInfoNative(book);
-		if (code != 0) {
-			throw new BookReadingException(
-				"nativeCodeFailure",
-				book.File,
-				new String[] { String.valueOf(code), book.File.getPath() }
-			);
+		if (!readMetaInfoNative(book)) {
+			throw new BookReadingException("errorReadingFile", book.File);
 		}
 	}
 
-	private native int readMetaInfoNative(Book book);
+	private native boolean readMetaInfoNative(Book book);
 
-	@Override
-	public native String readEncryptionMethod(Book book);
-
-	@Override
 	synchronized public void readUids(Book book) throws BookReadingException {
 		readUidsNative(book);
 		if (book.uids().isEmpty()) {
@@ -82,17 +73,12 @@ public class NativeFormatPlugin extends FormatPlugin {
 
 	@Override
 	synchronized public void readModel(BookModel model) throws BookReadingException {
-		final int code = readModelNative(model);
-		if (code != 0) {
-			throw new BookReadingException(
-				"nativeCodeFailure",
-				model.Book.File,
-				new String[] { String.valueOf(code), model.Book.File.getPath() }
-			);
+		if (!readModelNative(model)) {
+			throw new BookReadingException("errorReadingFile", model.Book.File);
 		}
 	}
 
-	private native int readModelNative(BookModel model);
+	private native boolean readModelNative(BookModel model);
 
 	@Override
 	public ZLImage readCover(final ZLFile file) {

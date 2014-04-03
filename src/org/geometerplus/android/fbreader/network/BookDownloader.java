@@ -68,7 +68,8 @@ public class BookDownloader extends Activity {
 		}
 		if ("epub".equals(uri.getScheme())) {
 			uri = uri.buildUpon().scheme("http").build();
-			intent.putExtra(BookDownloaderService.BOOK_FORMAT_KEY, BookUrlInfo.Format.EPUB.Extension);
+			intent.putExtra(BookDownloaderService.BOOK_FORMAT_KEY,
+					BookUrlInfo.Format.EPUB);
 		}
 
 		startService(

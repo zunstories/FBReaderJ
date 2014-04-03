@@ -140,24 +140,20 @@ public abstract class UIUtil {
 		});
 	}
 
-	public static void showMessageText(final Activity activity, final String text) {
-		activity.runOnUiThread(new Runnable() {
-			public void run() {
-				Toast.makeText(activity, text, Toast.LENGTH_LONG).show();
-			}
-		});
+	public static void showMessageText(Context context, String text) {
+		Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
 	}
 
-	public static void showErrorMessage(Activity activity, String resourceKey) {
+	public static void showErrorMessage(Context context, String resourceKey) {
 		showMessageText(
-			activity,
+			context,
 			ZLResource.resource("errorMessage").getResource(resourceKey).getValue()
 		);
 	}
 
-	public static void showErrorMessage(Activity activity, String resourceKey, String parameter) {
+	public static void showErrorMessage(Context context, String resourceKey, String parameter) {
 		showMessageText(
-			activity,
+			context,
 			ZLResource.resource("errorMessage").getResource(resourceKey).getValue().replace("%s", parameter)
 		);
 	}

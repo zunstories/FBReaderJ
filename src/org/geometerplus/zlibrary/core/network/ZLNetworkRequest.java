@@ -31,7 +31,6 @@ public abstract class ZLNetworkRequest {
 	public final String PostData;
 	public final Map<String,String> PostParameters = new HashMap<String,String>();
 	public final MimeType Mime;
-	public final Map<String,String> Headers = new HashMap<String,String>();
 
 	private final boolean myIsQuiet;
 
@@ -56,10 +55,6 @@ public abstract class ZLNetworkRequest {
 
 	public void addPostParameter(String name, String value) {
 		PostParameters.put(name, value);
-	}
-
-	public void addHeader(String name, String value) {
-		Headers.put(name, value);
 	}
 
 	public String getURL() {

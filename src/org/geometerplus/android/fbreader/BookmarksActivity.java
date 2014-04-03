@@ -35,9 +35,9 @@ import org.geometerplus.zlibrary.ui.android.R;
 
 import org.geometerplus.fbreader.book.*;
 
-import org.geometerplus.android.fbreader.api.FBReaderIntents;
 import org.geometerplus.android.fbreader.libraryService.BookCollectionShadow;
-import org.geometerplus.android.util.*;
+import org.geometerplus.android.util.UIUtil;
+import org.geometerplus.android.util.ViewUtil;
 
 public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuItemClickListener {
 	private static final int OPEN_ITEM_ID = 0;
@@ -80,7 +80,7 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 		final TabHost host = getTabHost();
 		LayoutInflater.from(this).inflate(R.layout.bookmarks, host.getTabContentView(), true);
 
-		myBook = FBReaderIntents.getBookExtra(getIntent());
+		myBook = SerializerUtil.deserializeBook(getIntent().getStringExtra(FBReader.BOOK_KEY));
 	}
 
 	private class Initializer implements Runnable {
@@ -170,9 +170,9 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 	}
 
 	@Override
-	protected void onDestroy() {
+	protected void onStop() {
 		myCollection.unbind();
-		super.onDestroy();
+		super.onStop();
 	}
 
 	@Override
@@ -189,11 +189,7 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 
 	@Override
 	public boolean onSearchRequested() {
-		if (DeviceType.Instance().hasStandardSearchDialog()) {
-			startSearch(myBookmarkSearchPatternOption.getValue(), true, null, false);
-		} else {
-			SearchDialogUtil.showDialog(this, BookmarksActivity.class, myBookmarkSearchPatternOption.getValue(), null);
-		}
+		startSearch(myBookmarkSearchPatternOption.getValue(), true, null, false);
 		return true;
 	}
 
@@ -250,7 +246,8 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 	}
 
 	private void addBookmark() {
-		final Bookmark bookmark = FBReaderIntents.getBookmarkExtra(getIntent());
+		final Bookmark bookmark =
+			SerializerUtil.deserializeBookmark(getIntent().getStringExtra(FBReader.BOOKMARK_KEY));
 		if (bookmark != null) {
 			myCollection.saveBookmark(bookmark);
 			myThisBookAdapter.add(bookmark);

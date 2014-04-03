@@ -41,7 +41,6 @@ class ObjectArrayMethod;
 class StaticObjectMethod;
 
 class ZLFile;
-class FileEncryptionInfo;
 class ZLFileImage;
 
 class AndroidUtil {
@@ -60,7 +59,6 @@ public:
 	static JavaClass Class_java_io_InputStream;
 	static JavaClass Class_ZLibrary;
 	static JavaClass Class_ZLFile;
-	static JavaClass Class_FileEncryptionInfo;
 	static JavaClass Class_ZLFileImage;
 	static JavaClass Class_ZLTextModel;
 	static JavaClass Class_CachedCharStorageException;
@@ -86,9 +84,6 @@ public:
 	static shared_ptr<VoidMethod> Method_java_io_InputStream_close;
 	static shared_ptr<IntMethod> Method_java_io_InputStream_read;
 	static shared_ptr<LongMethod> Method_java_io_InputStream_skip;
-	static shared_ptr<VoidMethod> Method_java_io_InputStream_mark;
-	static shared_ptr<BooleanMethod> Method_java_io_InputStream_markSupported;
-	static shared_ptr<VoidMethod> Method_java_io_InputStream_reset;
 
 	static shared_ptr<StaticObjectMethod> StaticMethod_ZLibrary_Instance;
 	static shared_ptr<StringMethod> Method_ZLibrary_getVersionName;
@@ -100,8 +95,6 @@ public:
 	static shared_ptr<StringMethod> Method_ZLFile_getPath;
 	static shared_ptr<BooleanMethod> Method_ZLFile_isDirectory;
 	static shared_ptr<LongMethod> Method_ZLFile_size;
-
-	static shared_ptr<Constructor> Constructor_FileEncryptionInfo;
 
 	static shared_ptr<Constructor> Constructor_ZLFileImage;
 
@@ -157,7 +150,6 @@ public:
 	static std::string convertNonUtfString(const std::string &str);
 
 	static jobject createJavaFile(JNIEnv *env, const std::string &path);
-	static jobject createJavaEncryptionInfo(JNIEnv *env, shared_ptr<FileEncryptionInfo> info);
 	static jobject createJavaImage(JNIEnv *env, const ZLFileImage &image);
 
 	static jintArray createJavaIntArray(JNIEnv *env, const std::vector<jint> &data);

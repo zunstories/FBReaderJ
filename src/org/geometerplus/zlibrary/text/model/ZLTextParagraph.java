@@ -30,8 +30,6 @@ public interface ZLTextParagraph {
 		byte STYLE_CLOSE = 7;
 		byte FIXED_HSPACE = 8;
 		byte RESET_BIDI = 9;
-		byte AUDIO = 10;
-		byte VIDEO = 11;
 	}
 
 	interface EntryIterator {
@@ -48,7 +46,6 @@ public interface ZLTextParagraph {
 		String getHyperlinkId();
 
 		ZLImageEntry getImageEntry();
-		ZLVideoEntry getVideoEntry();
 		ZLTextStyleEntry getStyleEntry();
 
 		short getFixedHSpaceLength();
@@ -67,7 +64,6 @@ public interface ZLTextParagraph {
 		byte AFTER_SKIP_PARAGRAPH = 4;
 		byte END_OF_SECTION_PARAGRAPH = 5;
 		byte END_OF_TEXT_PARAGRAPH = 6;
-		byte ENCRYPTED_SECTION_PARAGRAPH = 7;
 	};
 
 	byte getKind();

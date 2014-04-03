@@ -38,12 +38,10 @@ import org.geometerplus.fbreader.fbreader.options.*;
 
 public final class FBView extends ZLTextView {
 	private final FBReaderApp myReader;
-	private final ViewOptions myViewOptions;
 
 	FBView(FBReaderApp reader) {
 		super(reader);
 		myReader = reader;
-		myViewOptions = reader.ViewOptions;
 	}
 
 	public void setModel(ZLTextModel model) {
@@ -76,21 +74,12 @@ public final class FBView extends ZLTextView {
 			return true;
 		}
 
-		final ZLTextRegion hyperlinkRegion = findRegion(x, y, MAX_SELECTION_DISTANCE, ZLTextRegion.HyperlinkFilter);
-		if (hyperlinkRegion != null) {
-			selectRegion(hyperlinkRegion);
+		final ZLTextRegion region = findRegion(x, y, MAX_SELECTION_DISTANCE, ZLTextRegion.HyperlinkFilter);
+		if (region != null) {
+			selectRegion(region);
 			myReader.getViewWidget().reset();
 			myReader.getViewWidget().repaint();
 			myReader.runAction(ActionCode.PROCESS_HYPERLINK);
-			return true;
-		}
-
-		final ZLTextRegion videoRegion = findRegion(x, y, 0, ZLTextRegion.VideoFilter);
-		if (videoRegion != null) {
-			selectRegion(videoRegion);
-			myReader.getViewWidget().reset();
-			myReader.getViewWidget().repaint();
-			myReader.runAction(ActionCode.OPEN_VIDEO, (ZLTextVideoRegionSoul)videoRegion.getSoul());
 			return true;
 		}
 
@@ -351,7 +340,7 @@ public final class FBView extends ZLTextView {
 
 	@Override
 	public ZLTextStyleCollection getTextStyleCollection() {
-		return myViewOptions.getTextStyleCollection();
+		return myReader.TextStyleCollection;
 	}
 
 	@Override
@@ -361,37 +350,37 @@ public final class FBView extends ZLTextView {
 
 	@Override
 	public int getLeftMargin() {
-		return myViewOptions.LeftMargin.getValue();
+		return myReader.ViewOptions.LeftMargin.getValue();
 	}
 
 	@Override
 	public int getRightMargin() {
-		return myViewOptions.RightMargin.getValue();
+		return myReader.ViewOptions.RightMargin.getValue();
 	}
 
 	@Override
 	public int getTopMargin() {
-		return myViewOptions.TopMargin.getValue();
+		return myReader.ViewOptions.TopMargin.getValue();
 	}
 
 	@Override
 	public int getBottomMargin() {
-		return myViewOptions.BottomMargin.getValue();
+		return myReader.ViewOptions.BottomMargin.getValue();
 	}
 
 	@Override
 	public int getSpaceBetweenColumns() {
-		return myViewOptions.SpaceBetweenColumns.getValue();
+		return myReader.ViewOptions.SpaceBetweenColumns.getValue();
 	}
 
 	@Override
 	public boolean twoColumnView() {
-		return getContextHeight() <= getContextWidth() && myViewOptions.TwoColumnView.getValue();
+		return getContextHeight() <= getContextWidth() && myReader.ViewOptions.TwoColumnView.getValue();
 	}
 
 	@Override
 	public ZLFile getWallpaperFile() {
-		final String filePath = myViewOptions.getColorProfile().WallpaperOption.getValue();
+		final String filePath = myReader.getColorProfile().WallpaperOption.getValue();
 		if ("".equals(filePath)) {
 			return null;
 		}
@@ -412,22 +401,22 @@ public final class FBView extends ZLTextView {
 
 	@Override
 	public ZLColor getBackgroundColor() {
-		return myViewOptions.getColorProfile().BackgroundOption.getValue();
+		return myReader.getColorProfile().BackgroundOption.getValue();
 	}
 
 	@Override
 	public ZLColor getSelectionBackgroundColor() {
-		return myViewOptions.getColorProfile().SelectionBackgroundOption.getValue();
+		return myReader.getColorProfile().SelectionBackgroundOption.getValue();
 	}
 
 	@Override
 	public ZLColor getSelectionForegroundColor() {
-		return myViewOptions.getColorProfile().SelectionForegroundOption.getValue();
+		return myReader.getColorProfile().SelectionForegroundOption.getValue();
 	}
 
 	@Override
 	public ZLColor getTextColor(ZLTextHyperlink hyperlink) {
-		final ColorProfile profile = myViewOptions.getColorProfile();
+		final ColorProfile profile = myReader.getColorProfile();
 		switch (hyperlink.Type) {
 			default:
 			case FBHyperlinkType.NONE:
@@ -443,7 +432,7 @@ public final class FBView extends ZLTextView {
 
 	@Override
 	public ZLColor getHighlightingBackgroundColor() {
-		return myViewOptions.getColorProfile().HighlightingOption.getValue();
+		return myReader.getColorProfile().HighlightingOption.getValue();
 	}
 
 	private class Footer implements FooterArea {
@@ -456,7 +445,7 @@ public final class FBView extends ZLTextView {
 		private ArrayList<TOCTree> myTOCMarks;
 
 		public int getHeight() {
-			return myViewOptions.FooterHeight.getValue();
+			return myReader.ViewOptions.FooterHeight.getValue();
 		}
 
 		public synchronized void resetTOCMarks() {
@@ -505,11 +494,11 @@ public final class FBView extends ZLTextView {
 				return;
 			}
 
-			final FooterOptions footerOptions = myViewOptions.getFooterOptions();
+			final FooterOptions footerOptions = myReader.FooterOptions;
 			//final ZLColor bgColor = getBackgroundColor();
 			// TODO: separate color option for footer color
 			final ZLColor fgColor = getTextColor(ZLTextHyperlink.NO_LINK);
-			final ZLColor fillColor = myViewOptions.getColorProfile().FooterFillOption.getValue();
+			final ZLColor fillColor = myReader.getColorProfile().FooterFillOption.getValue();
 
 			final int left = getLeftMargin();
 			final int right = context.getWidth() - getRightMargin();
@@ -610,7 +599,7 @@ public final class FBView extends ZLTextView {
 
 	@Override
 	public Footer getFooterArea() {
-		if (myViewOptions.ScrollbarType.getValue() == SCROLLBAR_SHOW_AS_FOOTER) {
+		if (myReader.ViewOptions.ScrollbarType.getValue() == SCROLLBAR_SHOW_AS_FOOTER) {
 			if (myFooter == null) {
 				myFooter = new Footer();
 				myReader.addTimerTask(myFooter.UpdateTask, 15000);
@@ -652,7 +641,7 @@ public final class FBView extends ZLTextView {
 
 	@Override
 	public int scrollbarType() {
-		return myViewOptions.ScrollbarType.getValue();
+		return myReader.ViewOptions.ScrollbarType.getValue();
 	}
 
 	@Override
@@ -663,7 +652,7 @@ public final class FBView extends ZLTextView {
 	@Override
 	protected ZLPaintContext.ColorAdjustingMode getAdjustingModeForImages() {
 		if (myReader.ImageOptions.MatchBackground.getValue()) {
-			if (ColorProfile.DAY.equals(myViewOptions.getColorProfile().Name)) {
+			if (ColorProfile.DAY.equals(myReader.getColorProfile().Name)) {
 				return ZLPaintContext.ColorAdjustingMode.DARKEN_TO_BACKGROUND;
 			} else {
 				return ZLPaintContext.ColorAdjustingMode.LIGHTEN_TO_BACKGROUND;

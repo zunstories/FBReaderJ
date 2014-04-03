@@ -27,7 +27,6 @@
 #include "HtmlReader.h"
 #include "../../bookmodel/BookReader.h"
 #include "../css/StyleSheetTable.h"
-#include "../css/FontMap.h"
 
 class BookModel;
 class PlainTextFormat;
@@ -75,7 +74,6 @@ private:
 
 	StyleSheetTable myStyleSheetTable;
 	shared_ptr<StyleSheetParser> myStyleSheetParser;
-	FontMap myFontMap;
 
 	int mySpaceCounter;
 	int myBreakCounter;

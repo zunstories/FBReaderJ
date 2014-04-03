@@ -96,11 +96,11 @@ public class PluginListActivity extends ListActivity {
 		}
 
 		public final int getCount() {
-			return myPlugins.isEmpty() ? 1 : myPlugins.size();
+			return myPlugins.size();
 		}
 
 		public final Plugin getItem(int position) {
-			return myPlugins.isEmpty() ? null : myPlugins.get(position);
+			return myPlugins.get(position);
 		}
 
 		public final long getItemId(int position) {
@@ -114,28 +114,19 @@ public class PluginListActivity extends ListActivity {
 			final TextView titleView = ViewUtil.findTextView(view, R.id.plugin_item_title);
 			final TextView summaryView = ViewUtil.findTextView(view, R.id.plugin_item_summary);
 			final Plugin plugin = getItem(position);
-			if (plugin != null) {
-				final ZLResource resource = myResource.getResource(plugin.Id);
-				titleView.setText(resource.getValue());
-				summaryView.setText(resource.getResource("summary").getValue());
-			} else {
-				final ZLResource resource = myResource.getResource("noMorePlugins");
-				titleView.setText(resource.getValue());
-				summaryView.setVisibility(View.GONE);
-			}
+			final ZLResource resource = myResource.getResource(plugin.Id);
+			titleView.setText(resource.getValue());
+			summaryView.setText(resource.getResource("summary").getValue());
 			return view;
 		}
 
 		public final void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-			final Plugin plugin = getItem(position);
-			if (plugin != null) {
-				runOnUiThread(new Runnable() {
-					public void run() {
-						finish();
-						PackageUtil.installFromMarket(PluginListActivity.this, plugin.PackageName);
-					}
-				});
-			}
+			runOnUiThread(new Runnable() {
+				public void run() {
+					finish();
+					PackageUtil.installFromMarket(PluginListActivity.this, getItem(position).PackageName);
+				}
+			});
 		}
 	}
 }

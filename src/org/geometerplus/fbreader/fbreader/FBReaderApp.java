@@ -22,7 +22,6 @@ package org.geometerplus.fbreader.fbreader;
 import java.util.*;
 
 import org.geometerplus.zlibrary.core.application.*;
-import org.geometerplus.zlibrary.core.drm.EncryptionMethod;
 import org.geometerplus.zlibrary.core.library.ZLibrary;
 import org.geometerplus.zlibrary.core.options.*;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
@@ -31,19 +30,34 @@ import org.geometerplus.zlibrary.core.util.*;
 import org.geometerplus.zlibrary.text.hyphenation.ZLTextHyphenator;
 import org.geometerplus.zlibrary.text.model.ZLTextModel;
 import org.geometerplus.zlibrary.text.view.*;
+import org.geometerplus.zlibrary.text.view.style.ZLTextStyleCollection;
 
 import org.geometerplus.fbreader.book.*;
 import org.geometerplus.fbreader.bookmodel.*;
 import org.geometerplus.fbreader.fbreader.options.*;
-import org.geometerplus.fbreader.formats.FormatPlugin;
 
 public final class FBReaderApp extends ZLApplication {
-	public final MiscOptions MiscOptions = new MiscOptions();
-	public final ImageOptions ImageOptions = new ImageOptions();
-	public final ViewOptions ViewOptions = new ViewOptions();
-	public final PageTurningOptions PageTurningOptions = new PageTurningOptions();
+	public final ZLTextStyleCollection TextStyleCollection;
 
-	private final ZLKeyBindings myBindings = new ZLKeyBindings();
+	public final MiscOptions MiscOptions;
+	public final ImageOptions ImageOptions;
+	public final ViewOptions ViewOptions;
+	public final PageTurningOptions PageTurningOptions;
+	public final FooterOptions FooterOptions;
+
+	private final ZLKeyBindings myBindings;
+
+	{
+		TextStyleCollection = new ZLTextStyleCollection("Base");
+
+		MiscOptions = new MiscOptions();
+		ImageOptions = new ImageOptions();
+		ViewOptions = new ViewOptions();
+		PageTurningOptions = new PageTurningOptions();
+		FooterOptions = new FooterOptions();
+
+		myBindings = new ZLKeyBindings();
+	}
 
 	public final FBView BookTextView;
 	public final FBView FootnoteView;
@@ -138,6 +152,24 @@ public final class FBReaderApp extends ZLApplication {
 		}
 	}
 
+	private ColorProfile myColorProfile;
+
+	public ColorProfile getColorProfile() {
+		if (myColorProfile == null) {
+			myColorProfile = ColorProfile.get(getColorProfileName());
+		}
+		return myColorProfile;
+	}
+
+	public String getColorProfileName() {
+		return ViewOptions.ColorProfileName.getValue();
+	}
+
+	public void setColorProfileName(String name) {
+		ViewOptions.ColorProfileName.setValue(name);
+		myColorProfile = null;
+	}
+
 	public ZLKeyBindings keyBindings() {
 		return myBindings;
 	}
@@ -220,7 +252,7 @@ public final class FBReaderApp extends ZLApplication {
 		}
 	}
 
-	private synchronized void openBookInternal(Book book, Bookmark bookmark, boolean force) {
+	synchronized void openBookInternal(Book book, Bookmark bookmark, boolean force) {
 		if (book == null) {
 			book = Collection.getRecentBook(0);
 			if (book == null || !book.File.exists()) {
@@ -232,7 +264,6 @@ public final class FBReaderApp extends ZLApplication {
 			book.addLabel(Book.READ_LABEL);
 			Collection.saveBook(book);
 		}
-
 		if (!force && Model != null && book.equals(Model.Book)) {
 			if (bookmark != null) {
 				gotoBookmark(bookmark, false);
@@ -280,15 +311,6 @@ public final class FBReaderApp extends ZLApplication {
 
 		getViewWidget().reset();
 		getViewWidget().repaint();
-
-		try {
-			final String method = book.getPlugin().readEncryptionMethod(book);
-			if (!EncryptionMethod.NONE.equals(method)) {
-				showErrorMessage("unsupportedEncryptionMethod", book.File.getPath());
-			}
-		} catch (BookReadingException e) {
-			// ignore
-		}
 	}
 
 	private List<Bookmark> invisibleBookmarks() {

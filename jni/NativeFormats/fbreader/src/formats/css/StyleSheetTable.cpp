@@ -29,21 +29,27 @@ bool StyleSheetTable::isEmpty() const {
 
 void StyleSheetTable::addMap(const std::string &tag, const std::string &aClass, const AttributeMap &map) {
 	if ((!tag.empty() || !aClass.empty()) && !map.empty()) {
-		const Key key(tag, aClass);
+		Key key(tag, aClass);
 		myControlMap[key] = createControl(map);
-
-		const std::string &pbb = value(map, "page-break-before");
-		if (pbb == "always" || pbb == "left" || pbb == "right") {
-			myPageBreakBeforeMap[key] = true;
-		} else if (pbb == "avoid") {
-			myPageBreakBeforeMap[key] = false;
+		const std::vector<std::string> &pbb = values(map, "page-break-before");
+		if (!pbb.empty()) {
+			if ((pbb[0] == "always") ||
+					(pbb[0] == "left") ||
+					(pbb[0] == "right")) {
+				myPageBreakBeforeMap[key] = true;
+			} else if (pbb[0] == "avoid") {
+				myPageBreakBeforeMap[key] = false;
+			}
 		}
-
-		const std::string &pba = value(map, "page-break-after");
-		if (pba == "always" || pba == "left" || pba == "right") {
-			myPageBreakAfterMap[key] = true;
-		} else if (pba == "avoid") {
-			myPageBreakAfterMap[key] = false;
+		const std::vector<std::string> &pba = values(map, "page-break-after");
+		if (!pba.empty()) {
+			if ((pba[0] == "always") ||
+					(pba[0] == "left") ||
+					(pba[0] == "right")) {
+				myPageBreakAfterMap[key] = true;
+			} else if (pba[0] == "avoid") {
+				myPageBreakAfterMap[key] = false;
+			}
 		}
 	}
 }
@@ -51,7 +57,7 @@ void StyleSheetTable::addMap(const std::string &tag, const std::string &aClass, 
 static bool parseLength(const std::string &toParse, short &size, ZLTextStyleEntry::SizeUnit &unit) {
 	if (ZLStringUtil::stringEndsWith(toParse, "%")) {
 		unit = ZLTextStyleEntry::SIZE_UNIT_PERCENT;
-		size = std::atoi(toParse.c_str());
+		size = atoi(toParse.c_str());
 		return true;
 	} else if (ZLStringUtil::stringEndsWith(toParse, "em")) {
 		unit = ZLTextStyleEntry::SIZE_UNIT_EM_100;
@@ -63,11 +69,11 @@ static bool parseLength(const std::string &toParse, short &size, ZLTextStyleEntr
 		return true;
 	} else if (ZLStringUtil::stringEndsWith(toParse, "px")) {
 		unit = ZLTextStyleEntry::SIZE_UNIT_PIXEL;
-		size = std::atoi(toParse.c_str());
+		size = atoi(toParse.c_str());
 		return true;
 	} else if (ZLStringUtil::stringEndsWith(toParse, "pt")) {
 		unit = ZLTextStyleEntry::SIZE_UNIT_POINT;
-		size = std::atoi(toParse.c_str());
+		size = atoi(toParse.c_str());
 		return true;
 	}
 	return false;
@@ -78,10 +84,13 @@ void StyleSheetTable::setLength(ZLTextStyleEntry &entry, ZLTextStyleEntry::Featu
 	if (it == map.end()) {
 		return;
 	}
-	short size;
-	ZLTextStyleEntry::SizeUnit unit;
-	if (parseLength(it->second, size, unit)) {
-		entry.setLength(featureId, size, unit);
+	const std::vector<std::string> &values = it->second;
+	if (!values.empty() && !values[0].empty()) {
+		short size;
+		ZLTextStyleEntry::SizeUnit unit;
+		if (parseLength(values[0], size, unit)) {
+			entry.setLength(featureId, size, unit);
+		}
 	}
 }
 
@@ -126,156 +135,109 @@ bool StyleSheetTable::doBreakAfter(const std::string &tag, const std::string &aC
 shared_ptr<ZLTextStyleEntry> StyleSheetTable::control(const std::string &tag, const std::string &aClass) const {
 	std::map<Key,shared_ptr<ZLTextStyleEntry> >::const_iterator it =
 		myControlMap.find(Key(tag, aClass));
-	return it != myControlMap.end() ? it->second : 0;
+	return (it != myControlMap.end()) ? it->second : 0;
 }
 
-const std::string &StyleSheetTable::value(const AttributeMap &map, const std::string &name) {
+const std::vector<std::string> &StyleSheetTable::values(const AttributeMap &map, const std::string &name) {
 	const AttributeMap::const_iterator it = map.find(name);
 	if (it != map.end()) {
 		return it->second;
 	}
-	static const std::string emptyString;
-	return emptyString;
-}
-
-static std::string strip(const std::string &data) {
-	std::string res = data;
-	ZLStringUtil::stripWhiteSpaces(res);
-	if (res.size() > 1 && (res[0] == '"' || res[0] == '\'') && res[0] == res[res.size() - 1]) {
-		return res.substr(1, res.size() - 2);
-	} else {
-		return res;
-	}
-}
-
-static std::vector<std::string> splitCommaSeparatedList(const std::string &data) {
-	std::vector<std::string> split;
-
-	enum {
-		S_QUOTED,
-		D_QUOTED,
-		NORMAL
-	} state = NORMAL;
-
-	std::size_t start = 0;
-	for (std::size_t i = 0; i < data.size(); ++i) {
-		const char ch = data[i];
-		switch (state) {
-			case NORMAL:
-				if (ch == ',') {
-					if (i > start) {
-						split.push_back(strip(data.substr(start, i - start)));
-					}
-					start = i + 1;
-				}
-				break;
-			case S_QUOTED:
-				if (ch == '\'') {
-					state = NORMAL;
-				}
-				break;
-			case D_QUOTED:
-				if (ch == '"') {
-					state = NORMAL;
-				}
-				break;
-		}
-	}
-
-	return split;
+	static const std::vector<std::string> emptyVector;
+	return emptyVector;
 }
 
 shared_ptr<ZLTextStyleEntry> StyleSheetTable::createControl(const AttributeMap &styles) {
 	shared_ptr<ZLTextStyleEntry> entry = new ZLTextStyleEntry(ZLTextStyleEntry::STYLE_CSS_ENTRY);
 
-	const std::string &alignment = value(styles, "text-align");
-	if (alignment == "justify") {
-		entry->setAlignmentType(ALIGN_JUSTIFY);
-	} else if (alignment == "left") {
-		entry->setAlignmentType(ALIGN_LEFT);
-	} else if (alignment == "right") {
-		entry->setAlignmentType(ALIGN_RIGHT);
-	} else if (alignment == "center") {
-		entry->setAlignmentType(ALIGN_CENTER);
+	const std::vector<std::string> &alignment = values(styles, "text-align");
+	if (!alignment.empty()) {
+		if (alignment[0] == "justify") {
+			entry->setAlignmentType(ALIGN_JUSTIFY);
+		} else if (alignment[0] == "left") {
+			entry->setAlignmentType(ALIGN_LEFT);
+		} else if (alignment[0] == "right") {
+			entry->setAlignmentType(ALIGN_RIGHT);
+		} else if (alignment[0] == "center") {
+			entry->setAlignmentType(ALIGN_CENTER);
+		}
 	}
 
-	const std::string &deco = value(styles, "text-decoration");
-	if (deco == "underline") {
-		entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_UNDERLINED, true);
-	} else if (deco == "line-through") {
-		entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_STRIKEDTHROUGH, true);
-	} else if (deco == "none") {
-		entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_UNDERLINED, false);
-		entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_STRIKEDTHROUGH, false);
+	const std::vector<std::string> &deco = values(styles, "text-decoration");
+	for (std::vector<std::string>::const_iterator it = deco.begin(); it != deco.end(); ++it) {
+		if (*it == "underline") {
+			entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_UNDERLINED, true);
+		} else if (*it == "line-through") {
+			entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_STRIKEDTHROUGH, true);
+		} else if (*it == "none") {
+			entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_UNDERLINED, false);
+			entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_STRIKEDTHROUGH, false);
+		}
 	}
 
-	const std::string bold = value(styles, "font-weight");
+	const std::vector<std::string> &bold = values(styles, "font-weight");
 	if (!bold.empty()) {
 		int num = -1;
-		if (bold == "bold") {
+		if (bold[0] == "bold") {
 			num = 700;
-		} else if (bold == "normal") {
+		} else if (bold[0] == "normal") {
 			num = 400;
-		} else if (bold == "bolder") {
+		} else if (bold[0] == "bolder") {
 			// TODO: implement
-		} else if (bold == "lighter") {
+		} else if (bold[0] == "lighter") {
 			// TODO: implement
 		} else {
-			num = ZLStringUtil::stringToInteger(bold, -1);
+			num = ZLStringUtil::stringToInteger(bold[0], -1);
 		}
 		if (num != -1) {
 			entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_BOLD, num >= 600);
 		}
 	}
 
-	const std::string &italic = value(styles, "font-style");
+	const std::vector<std::string> &italic = values(styles, "font-style");
 	if (!italic.empty()) {
-		entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_ITALIC, italic == "italic" || italic == "oblique");
+		entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_ITALIC, italic[0] == "italic");
 	}
 
-	const std::string &variant = value(styles, "font-variant");
+	const std::vector<std::string> &variant = values(styles, "font-variant");
 	if (!variant.empty()) {
-		entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_SMALLCAPS, variant == "small-caps");
+		entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_SMALLCAPS, variant[0] == "small-caps");
 	}
 
-	const std::string &fontFamily = value(styles, "font-family");
-	if (!fontFamily.empty()) {
-		std::vector<std::string> families = splitCommaSeparatedList(fontFamily);
-		// TODO: use all families
-		if (!families.empty()) {
-			entry->setFontFamily(families[0]);
-		}
+	const std::vector<std::string> &fontFamily = values(styles, "font-family");
+	if (!fontFamily.empty() && !fontFamily[0].empty()) {
+		entry->setFontFamily(fontFamily[0]);
 	}
 
-	const std::string &fontSize = value(styles, "font-size");
+	const std::vector<std::string> &fontSize = values(styles, "font-size");
 	if (!fontSize.empty()) {
 		bool doSetFontSize = true; 
 		short size = 100;
 		ZLTextStyleEntry::SizeUnit unit = ZLTextStyleEntry::SIZE_UNIT_PERCENT;
-		if (fontSize == "xx-small") {
+		if (fontSize[0] == "xx-small") {
 			size = 58;
-		} else if (fontSize == "x-small") {
+		} else if (fontSize[0] == "x-small") {
 			size = 69;
-		} else if (fontSize == "small") {
+		} else if (fontSize[0] == "small") {
 			size = 83;
-		} else if (fontSize == "medium") {
+		} else if (fontSize[0] == "medium") {
 			size = 100;
-		} else if (fontSize == "large") {
+		} else if (fontSize[0] == "large") {
 			size = 120;
-		} else if (fontSize == "x-large") {
+		} else if (fontSize[0] == "x-large") {
 			size = 144;
-		} else if (fontSize == "xx-large") {
+		} else if (fontSize[0] == "xx-large") {
 			size = 173;
-		} else if (fontSize == "inherit") {
+		} else if (fontSize[0] == "inherit") {
 			entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_INHERIT, true);
 			doSetFontSize = false;
-		} else if (fontSize == "smaller") {
+		} else if (fontSize[0] == "smaller") {
 			entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_SMALLER, true);
 			doSetFontSize = false;
-		} else if (fontSize == "larger") {
+		} else if (fontSize[0] == "larger") {
 			entry->setFontModifier(ZLTextStyleEntry::FONT_MODIFIER_LARGER, true);
 			doSetFontSize = false;
-		} else if (!parseLength(fontSize, size, unit)) {
+		} else if (!parseLength(fontSize[0], size, unit)) {
 			doSetFontSize = false;
 		}
 		if (doSetFontSize) {

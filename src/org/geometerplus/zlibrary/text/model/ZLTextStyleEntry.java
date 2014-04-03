@@ -146,7 +146,7 @@ public abstract class ZLTextStyleEntry {
 		myFontModifiers = values;
 	}
 
-	public final void setFontModifier(byte modifier, boolean on) {
+	final void setFontModifier(byte modifier, boolean on) {
 		myFeatureMask |= 1 << Feature.FONT_STYLE_MODIFIER;
 		mySupportedFontModifiers |= modifier;
 		if (on) {

@@ -29,12 +29,12 @@ class SwitchProfileAction extends FBAction {
 
 	@Override
 	public boolean isVisible() {
-		return !myProfileName.equals(Reader.ViewOptions.ColorProfileName.getValue());
+		return !myProfileName.equals(Reader.getColorProfileName());
 	}
 
 	@Override
 	protected void run(Object ... params) {
-		Reader.ViewOptions.ColorProfileName.setValue(myProfileName);
+		Reader.setColorProfileName(myProfileName);
 		Reader.getViewWidget().reset();
 		Reader.getViewWidget().repaint();
 	}

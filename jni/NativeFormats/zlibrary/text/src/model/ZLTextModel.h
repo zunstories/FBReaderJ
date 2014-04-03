@@ -33,7 +33,6 @@
 #include <ZLCachedMemoryAllocator.h>
 
 class ZLTextStyleEntry;
-class ZLVideoEntry;
 
 class ZLTextModel {
 
@@ -74,7 +73,6 @@ public:
 	void addImage(const std::string &id, short vOffset, bool isCover);
 	void addFixedHSpace(unsigned char length);
 	void addBidiReset();
-	void addVideoEntry(const ZLVideoEntry &entry);
 
 	void flush();
 

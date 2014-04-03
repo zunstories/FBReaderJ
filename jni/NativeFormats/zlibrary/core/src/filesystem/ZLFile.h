@@ -24,7 +24,6 @@
 
 #include <shared_ptr.h>
 #include <ZLFileInfo.h>
-#include <FileEncryptionInfo.h>
 
 class ZLDir;
 class ZLInputStream;
@@ -66,8 +65,6 @@ public:
 	bool isDirectory() const;
 	bool isArchive() const;
 
-	ZLFile getContainerArchive() const;
-
 	bool remove() const;
 	bool canRemove() const;
 
@@ -80,7 +77,7 @@ public:
 	std::string physicalFilePath() const;
 	std::string resolvedPath() const;
 
-	shared_ptr<ZLInputStream> inputStream(shared_ptr<EncryptionMap> encryptionMap = 0) const;
+	shared_ptr<ZLInputStream> inputStream() const;
 	shared_ptr<ZLOutputStream> outputStream(bool writeThrough = false) const;
 	shared_ptr<ZLDir> directory(bool createUnexisting = false) const;
 

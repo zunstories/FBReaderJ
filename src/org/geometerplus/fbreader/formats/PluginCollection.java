@@ -30,7 +30,7 @@ import org.geometerplus.fbreader.formats.pdb.MobipocketPlugin;
 
 public class PluginCollection {
 	static {
-		System.loadLibrary("NativeFormats-v4");
+		System.loadLibrary("NativeFormats-v3");
 	}
 
 	private static PluginCollection ourInstance;
@@ -87,33 +87,23 @@ public class PluginCollection {
 			return null;
 		}
 
-		switch (formatType) {
-			case NONE:
-				return null;
-			case ANY:
-			{
-				FormatPlugin p = getPlugin(fileType, FormatPlugin.Type.NATIVE);
-				if (p == null) {
-					p = getPlugin(fileType, FormatPlugin.Type.JAVA);
-				}
-				if (p == null) {
-					p = getPlugin(fileType, FormatPlugin.Type.PLUGIN);
-				}
-				return p;
+		if (formatType == FormatPlugin.Type.ANY) {
+			FormatPlugin p = getPlugin(fileType, FormatPlugin.Type.NATIVE);
+			if (p == null) {
+				p = getPlugin(fileType, FormatPlugin.Type.JAVA);
 			}
-			default:
-			{
-				final List<FormatPlugin> list = myPlugins.get(formatType);
-				if (list == null) {
-					return null;
-				}
-				for (FormatPlugin p : list) {
-					if (fileType.Id.equalsIgnoreCase(p.supportedFileType())) {
-						return p;
-					}
-				}
+			return p;
+		} else {
+			final List<FormatPlugin> list = myPlugins.get(formatType);
+			if (list == null) {
 				return null;
 			}
+			for (FormatPlugin p : list) {
+				if (fileType.Id.equalsIgnoreCase(p.supportedFileType())) {
+					return p;
+				}
+			}
+			return null;
 		}
 	}
 

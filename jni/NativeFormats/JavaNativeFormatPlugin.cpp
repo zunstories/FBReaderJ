@@ -20,7 +20,6 @@
 #include <AndroidUtil.h>
 #include <JniEnvelope.h>
 #include <ZLFileImage.h>
-#include <FileEncryptionInfo.h>
 
 #include "fbreader/src/bookmodel/BookModel.h"
 #include "fbreader/src/formats/FormatPlugin.h"
@@ -115,31 +114,20 @@ static void fillLanguageAndEncoding(JNIEnv* env, jobject javaBook, Book &book) {
 }
 
 extern "C"
-JNIEXPORT jint JNICALL Java_org_geometerplus_fbreader_formats_NativeFormatPlugin_readMetaInfoNative(JNIEnv* env, jobject thiz, jobject javaBook) {
+JNIEXPORT jboolean JNICALL Java_org_geometerplus_fbreader_formats_NativeFormatPlugin_readMetaInfoNative(JNIEnv* env, jobject thiz, jobject javaBook) {
 	shared_ptr<FormatPlugin> plugin = findCppPlugin(thiz);
 	if (plugin.isNull()) {
-		return 1;
+		return JNI_FALSE;
 	}
 
 	shared_ptr<Book> book = Book::loadFromJavaBook(env, javaBook);
 
 	if (!plugin->readMetaInfo(*book)) {
-		return 2;
+		return JNI_FALSE;
 	}
 
 	fillMetaInfo(env, javaBook, *book);
-	return 0;
-}
-
-extern "C"
-JNIEXPORT jstring JNICALL Java_org_geometerplus_fbreader_formats_NativeFormatPlugin_readEncryptionMethod(JNIEnv* env, jobject thiz, jobject javaBook) {
-	shared_ptr<FormatPlugin> plugin = findCppPlugin(thiz);
-	if (plugin.isNull()) {
-		return AndroidUtil::createJavaString(env, EncryptionMethod::UNSUPPORTED);
-	}
-
-	shared_ptr<Book> book = Book::loadFromJavaBook(env, javaBook);
-	return AndroidUtil::createJavaString(env, plugin->readEncryptionMethod(*book));
+	return JNI_TRUE;
 }
 
 extern "C"
@@ -264,10 +252,10 @@ static void initTOC(JNIEnv *env, jobject javaModel, const ContentsTree &tree) {
 }
 
 extern "C"
-JNIEXPORT jint JNICALL Java_org_geometerplus_fbreader_formats_NativeFormatPlugin_readModelNative(JNIEnv* env, jobject thiz, jobject javaModel) {
+JNIEXPORT jboolean JNICALL Java_org_geometerplus_fbreader_formats_NativeFormatPlugin_readModelNative(JNIEnv* env, jobject thiz, jobject javaModel) {
 	shared_ptr<FormatPlugin> plugin = findCppPlugin(thiz);
 	if (plugin.isNull()) {
-		return 1;
+		return JNI_FALSE;
 	}
 
 	jobject javaBook = AndroidUtil::Field_NativeBookModel_Book->value(javaModel);
@@ -275,15 +263,15 @@ JNIEXPORT jint JNICALL Java_org_geometerplus_fbreader_formats_NativeFormatPlugin
 	shared_ptr<Book> book = Book::loadFromJavaBook(env, javaBook);
 	shared_ptr<BookModel> model = new BookModel(book, javaModel);
 	if (!plugin->readModel(*model)) {
-		return 2;
+		return JNI_FALSE;
 	}
 	if (!model->flush()) {
 		AndroidUtil::throwCachedCharStorageException("Cannot write file from native code");
-		return 3;
+		return JNI_FALSE;
 	}
 
 	if (!initInternalHyperlinks(env, javaModel, *model)) {
-		return 4;
+		return JNI_FALSE;
 	}
 
 	initTOC(env, javaModel, *model->contentsTree());
@@ -291,11 +279,11 @@ JNIEXPORT jint JNICALL Java_org_geometerplus_fbreader_formats_NativeFormatPlugin
 	shared_ptr<ZLTextModel> textModel = model->bookTextModel();
 	jobject javaTextModel = createTextModel(env, javaModel, *textModel);
 	if (javaTextModel == 0) {
-		return 5;
+		return JNI_FALSE;
 	}
 	AndroidUtil::Method_NativeBookModel_setBookTextModel->call(javaModel, javaTextModel);
 	if (env->ExceptionCheck()) {
-		return 6;
+		return JNI_FALSE;
 	}
 	env->DeleteLocalRef(javaTextModel);
 
@@ -304,15 +292,15 @@ JNIEXPORT jint JNICALL Java_org_geometerplus_fbreader_formats_NativeFormatPlugin
 	for (; it != footnotes.end(); ++it) {
 		jobject javaFootnoteModel = createTextModel(env, javaModel, *it->second);
 		if (javaFootnoteModel == 0) {
-			return 7;
+			return JNI_FALSE;
 		}
 		AndroidUtil::Method_NativeBookModel_setFootnoteModel->call(javaModel, javaFootnoteModel);
 		if (env->ExceptionCheck()) {
-			return 8;
+			return JNI_FALSE;
 		}
 		env->DeleteLocalRef(javaFootnoteModel);
 	}
-	return 0;
+	return JNI_TRUE;
 }
 
 extern "C"

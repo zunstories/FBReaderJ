@@ -22,14 +22,12 @@
 
 #include <jni.h>
 
-#include <shared_ptr.h>
 #include <ZLInputStream.h>
-#include <FileEncryptionInfo.h>
 
 class JavaInputStream : public ZLInputStream {
 
 public:
-	JavaInputStream(const std::string &name, shared_ptr<FileEncryptionInfo> encryptionInfo = 0);
+	JavaInputStream(const std::string &name);
 	~JavaInputStream();
 	bool open();
 	std::size_t read(char *buffer, std::size_t maxSize);
@@ -48,10 +46,8 @@ private:
 	std::size_t skip(JNIEnv *env, std::size_t offset);
 
 private:
-	const std::string myName;
-	const shared_ptr<FileEncryptionInfo> myEncryptionInfo;
+	std::string myName;
 	bool myNeedRepositionToStart;
-	bool myMarkSupported;
 
 	jobject myJavaFile;
 

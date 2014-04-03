@@ -108,8 +108,7 @@ public class BookDownloaderService extends Service {
 		final int notifications = intent.getIntExtra(SHOW_NOTIFICATIONS_KEY, 0);
 
 		final String url = uri.toString();
-		final BookUrlInfo.Format bookFormat =
-			new BookUrlInfo.Format(intent.getStringExtra(BOOK_FORMAT_KEY));
+		final int bookFormat = intent.getIntExtra(BOOK_FORMAT_KEY, BookUrlInfo.Format.NONE);
 		UrlInfo.Type referenceType = (UrlInfo.Type)intent.getSerializableExtra(REFERENCE_TYPE_KEY);
 		if (referenceType == null) {
 			referenceType = UrlInfo.Type.Book;
@@ -128,7 +127,7 @@ public class BookDownloaderService extends Service {
 			return;
 		}
 
-		final String fileName = BookUrlInfo.makeBookFileName(cleanURL, bookFormat, referenceType);
+		String fileName = BookUrlInfo.makeBookFileName(cleanURL, bookFormat, referenceType);
 		if (fileName == null) {
 			doStop();
 			return;

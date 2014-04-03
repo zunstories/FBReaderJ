@@ -77,8 +77,6 @@ public interface ActionCode {
 	String SELECTION_TRANSLATE = "selectionTranslate";
 	String SELECTION_BOOKMARK = "selectionBookmark";
 
-	String OPEN_VIDEO = "video";
-
 	String OPEN_WEB_HELP = "help";
 	String INSTALL_PLUGINS = "plugins";
 }

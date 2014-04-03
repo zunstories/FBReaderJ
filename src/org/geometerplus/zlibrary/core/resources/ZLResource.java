@@ -58,10 +58,10 @@ abstract public class ZLResource {
 		return allLanguages;
 	}
 
-	private static final ZLStringOption ourLanguageOption =
-		new ZLStringOption("LookNFeel", "Language", Language.SYSTEM_CODE);
 	public static ZLStringOption getLanguageOption() {
-		return ourLanguageOption;
+		// quang's
+		// return new ZLStringOption("LookNFeel", "Language", Language.SYSTEM_CODE);
+		return new ZLStringOption("LookNFeel", "Language", "vi");
 	}
 
 	public static ZLResource resource(String key) {
@@ -69,10 +69,7 @@ abstract public class ZLResource {
 		if (ZLTreeResource.ourRoot == null) {
 			return ZLMissingResource.Instance;
 		}
-		try {
-			return ZLTreeResource.ourRoot.getResource(key);
-		} finally {
-		}
+		return ZLTreeResource.ourRoot.getResource(key);
 	}
 
 	protected ZLResource(String name) {

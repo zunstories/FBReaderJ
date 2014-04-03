@@ -56,12 +56,12 @@ public final class ConfigShadow extends Config implements ServiceConnection {
 	}
 
 	@Override
-	public boolean isInitialized() {
+	synchronized public boolean isInitialized() {
 		return myInterface != null;
 	}
 
 	@Override
-	public void runOnStart(Runnable runnable) {
+	synchronized public void runOnStart(Runnable runnable) {
 		if (myInterface != null) {
 			runnable.run();
 		} else {
@@ -70,7 +70,7 @@ public final class ConfigShadow extends Config implements ServiceConnection {
 	}
 
 	@Override
-	public List<String> listGroups() {
+	synchronized public List<String> listGroups() {
 		if (myInterface == null) {
 			return Collections.emptyList();
 		}
@@ -82,7 +82,7 @@ public final class ConfigShadow extends Config implements ServiceConnection {
 	}
 
 	@Override
-	public List<String> listNames(String group) {
+	synchronized public List<String> listNames(String group) {
 		if (myInterface == null) {
 			return Collections.emptyList();
 		}
@@ -94,7 +94,7 @@ public final class ConfigShadow extends Config implements ServiceConnection {
 	}
 
 	@Override
-	public void removeGroup(String name) {
+	synchronized public void removeGroup(String name) {
 		if (myInterface != null) {
 			try {
 				myInterface.removeGroup(name);
@@ -103,28 +103,8 @@ public final class ConfigShadow extends Config implements ServiceConnection {
 		}
 	}
 
-	public boolean getSpecialBooleanValue(String name, boolean defaultValue) {
-		return myContext.getSharedPreferences("fbreader.ui", Context.MODE_PRIVATE)
-			.getBoolean(name, defaultValue);
-	}
-
-	public void setSpecialBooleanValue(String name, boolean value) {
-		myContext.getSharedPreferences("fbreader.ui", Context.MODE_PRIVATE).edit()
-			.putBoolean(name, value).commit();
-	}
-
-	public String getSpecialStringValue(String name, String defaultValue) {
-		return myContext.getSharedPreferences("fbreader.ui", Context.MODE_PRIVATE)
-			.getString(name, defaultValue);
-	}
-
-	public void setSpecialStringValue(String name, String value) {
-		myContext.getSharedPreferences("fbreader.ui", Context.MODE_PRIVATE).edit()
-			.putString(name, value).commit();
-	}
-
 	@Override
-	protected String getValueInternal(String group, String name) throws NotAvailableException {
+	synchronized protected String getValueInternal(String group, String name) throws NotAvailableException {
 		if (myInterface == null) {
 			throw new NotAvailableException("Config is not initialized for " + group + ":" + name);
 		}
@@ -136,7 +116,7 @@ public final class ConfigShadow extends Config implements ServiceConnection {
 	}
 
 	@Override
-	protected void setValueInternal(String group, String name, String value) {
+	synchronized protected void setValueInternal(String group, String name, String value) {
 		if (myInterface != null) {
 			try {
 				myInterface.setValue(group, name, value);
@@ -146,7 +126,7 @@ public final class ConfigShadow extends Config implements ServiceConnection {
 	}
 
 	@Override
-	protected void unsetValueInternal(String group, String name) {
+	synchronized protected void unsetValueInternal(String group, String name) {
 		if (myInterface != null) {
 			try {
 				myInterface.unsetValue(group, name);
@@ -155,37 +135,14 @@ public final class ConfigShadow extends Config implements ServiceConnection {
 		}
 	}
 
-	@Override
-	protected Map<String,String> requestAllValuesForGroupInternal(String group) throws NotAvailableException {
-		if (myInterface == null) {
-			throw new NotAvailableException("Config is not initialized for " + group);
-		}
-		try {
-			final Map<String,String> values = new HashMap<String,String>();
-			for (String pair : myInterface.requestAllValuesForGroup(group)) {
-				final String[] split = pair.split("\000");
-				switch (split.length) {
-					case 1:
-						values.put(split[0], "");
-						break;
-					case 2:
-						values.put(split[0], split[1]);
-						break;
-				}
-			}
-			return values;
-		} catch (RemoteException e) {
-			throw new NotAvailableException("RemoteException for " + group);
-		}
-	}
-
 	// method from ServiceConnection interface
 	public synchronized void onServiceConnected(ComponentName name, IBinder service) {
 		myInterface = ConfigInterface.Stub.asInterface(service);
 		myContext.registerReceiver(myReceiver, new IntentFilter(SQLiteConfig.OPTION_CHANGE_EVENT_ACTION));
-		while (!myDeferredActions.isEmpty()) {
-			myDeferredActions.remove(0).run();
+		for (Runnable r : myDeferredActions) {
+			r.run();
 		}
+		myDeferredActions.clear();
 	}
 
 	// method from ServiceConnection interface

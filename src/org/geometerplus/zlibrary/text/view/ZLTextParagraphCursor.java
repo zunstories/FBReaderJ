@@ -23,7 +23,6 @@ import java.util.*;
 import org.vimgadgets.linebreak.LineBreaker;
 
 import org.geometerplus.zlibrary.core.image.*;
-import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.text.model.*;
 
 public final class ZLTextParagraphCursor {
@@ -100,11 +99,6 @@ public final class ZLTextParagraphCursor {
 								elements.add(new ZLTextImageElement(imageEntry.Id, data, image.getURI(), imageEntry.IsCover));
 							}
 						}
-						break;
-					case ZLTextParagraph.Entry.AUDIO:
-						break;
-					case ZLTextParagraph.Entry.VIDEO:
-						elements.add(new ZLTextVideoElement(it.getVideoEntry().sources()));
 						break;
 					case ZLTextParagraph.Entry.STYLE_CSS:
 					case ZLTextParagraph.Entry.STYLE_OTHER:
@@ -227,14 +221,6 @@ public final class ZLTextParagraphCursor {
 			case ZLTextParagraph.Kind.EMPTY_LINE_PARAGRAPH:
 				myElements.add(new ZLTextWord(SPACE_ARRAY, 0, 1, 0));
 				break;
-			case ZLTextParagraph.Kind.ENCRYPTED_SECTION_PARAGRAPH:
-			{
-				final ZLTextStyleEntry entry = new ZLTextOtherStyleEntry();
-				entry.setFontModifier(ZLTextStyleEntry.FontModifier.FONT_MODIFIER_BOLD, true);
-				myElements.add(new ZLTextStyleElement(entry));
-				myElements.add(new ZLTextWord(ZLResource.resource("drm").getResource("encryptedSection").getValue(), 0));
-				break;
-			}
 			default:
 				break;
 		}

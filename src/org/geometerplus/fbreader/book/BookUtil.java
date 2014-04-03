@@ -45,23 +45,24 @@ public abstract class BookUtil {
 	}
 
 	public static ZLResourceFile getHelpFile() {
-		final Locale locale = Locale.getDefault();
-
-		ZLResourceFile file = ZLResourceFile.createResourceFile(
-			"data/help/MiniHelp." + locale.getLanguage() + "_" + locale.getCountry() + ".fb2"
-		);
-		if (file.exists()) {
-			return file;
-		}
-
-		file = ZLResourceFile.createResourceFile(
-			"data/help/MiniHelp." + locale.getLanguage() + ".fb2"
-		);
-		if (file.exists()) {
-			return file;
-		}
-
-		return ZLResourceFile.createResourceFile("data/help/MiniHelp.en.fb2");
+//		final Locale locale = Locale.getDefault();
+//
+//		ZLResourceFile file = ZLResourceFile.createResourceFile(
+//			"data/help/MiniHelp." + locale.getLanguage() + "_" + locale.getCountry() + ".fb2"
+//		);
+//		if (file.exists()) {
+//			return file;
+//		}
+//
+//		file = ZLResourceFile.createResourceFile(
+//			"data/help/MiniHelp." + locale.getLanguage() + ".fb2"
+//		);
+//		if (file.exists()) {
+//			return file;
+//		}
+//
+//		return ZLResourceFile.createResourceFile("data/help/MiniHelp.en.fb2");
+		return ZLResourceFile.createResourceFile("UngXuTrongTinhYeu.epub");
 	}
 
 	public static boolean canRemoveBookFile(Book book) {

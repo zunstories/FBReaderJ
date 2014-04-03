@@ -40,7 +40,7 @@ import org.geometerplus.fbreader.Paths;
 import org.geometerplus.fbreader.bookmodel.FBTextKind;
 import org.geometerplus.fbreader.fbreader.*;
 import org.geometerplus.fbreader.fbreader.options.*;
-import org.geometerplus.fbreader.tips.TipsManager;
+//import org.geometerplus.fbreader.tips.TipsManager;
 
 import org.geometerplus.android.fbreader.DictionaryUtil;
 import org.geometerplus.android.fbreader.FBReader;
@@ -55,23 +55,16 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 
 	@Override
 	protected void init(Intent intent) {
-		final Config config = Config.Instance();
-		config.requestAllValuesForGroup("Style");
-		config.requestAllValuesForGroup("Options");
-		config.requestAllValuesForGroup("LookNFeel");
-		config.requestAllValuesForGroup("Fonts");
-		config.requestAllValuesForGroup("Files");
-		config.requestAllValuesForGroup("Scrolling");
-		config.requestAllValuesForGroup("Colors");
 		setResult(FBReader.RESULT_REPAINT);
 
+		final FBReaderApp fbReader = (FBReaderApp)FBReaderApp.Instance();
 		final ViewOptions viewOptions = new ViewOptions();
 		final MiscOptions miscOptions = new MiscOptions();
-		final FooterOptions footerOptions = viewOptions.getFooterOptions();
+		final FooterOptions footerOptions = fbReader.FooterOptions;
 		final PageTurningOptions pageTurningOptions = new PageTurningOptions();
 		final ImageOptions imageOptions = new ImageOptions();
-		final ColorProfile profile = viewOptions.getColorProfile();
-		final ZLTextStyleCollection collection = viewOptions.getTextStyleCollection();
+		final ColorProfile profile = fbReader.getColorProfile();
+		final ZLTextStyleCollection collection = fbReader.TextStyleCollection;
 		final ZLKeyBindings keyBindings = new ZLKeyBindings();
 
 		final ZLAndroidLibrary androidLibrary = (ZLAndroidLibrary)ZLAndroidLibrary.Instance();
@@ -586,8 +579,8 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 			keyBindings.getOption(KeyEvent.KEYCODE_BACK, true), backKeyLongPressActions
 		));
 
-		final Screen tipsScreen = createPreferenceScreen("tips");
-		tipsScreen.addOption(TipsManager.Instance().ShowTipsOption, "showTips");
+//		final Screen tipsScreen = createPreferenceScreen("tips");
+//		tipsScreen.addOption(TipsManager.Instance().ShowTipsOption, "showTips");
 
 		final Screen aboutScreen = createPreferenceScreen("about");
 		aboutScreen.addPreference(new InfoPreference(

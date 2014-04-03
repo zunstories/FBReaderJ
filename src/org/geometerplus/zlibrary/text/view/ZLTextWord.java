@@ -49,11 +49,7 @@ public final class ZLTextWord extends ZLTextElement {
 		}
 	}
 
-	ZLTextWord(String word, int paragraphOffset) {
-		this(word.toCharArray(), 0, word.length(), paragraphOffset);
-	}
-
-	ZLTextWord(char[] data, int offset, int length, int paragraphOffset) {
+	public ZLTextWord(char[] data, int offset, int length, int paragraphOffset) {
 		Data = data;
 		Offset = offset;
 		Length = length;

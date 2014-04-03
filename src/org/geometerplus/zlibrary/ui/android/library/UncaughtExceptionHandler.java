@@ -23,11 +23,10 @@ import java.io.*;
 
 import android.app.Activity;
 import android.content.*;
-import android.net.Uri;
 import android.os.Process;
+import android.net.Uri;
 
 import org.geometerplus.zlibrary.ui.android.error.BugReportActivity;
-import org.geometerplus.android.fbreader.api.FBReaderIntents;
 
 public class UncaughtExceptionHandler implements java.lang.Thread.UncaughtExceptionHandler {
 	private final Context myContext;
@@ -43,10 +42,9 @@ public class UncaughtExceptionHandler implements java.lang.Thread.UncaughtExcept
 		System.err.println(stackTrace);
 
 		Intent intent = new Intent(
-			FBReaderIntents.Action.CRASH,
+			"android.fbreader.action.CRASH",
 			new Uri.Builder().scheme(exception.getClass().getSimpleName()).build()
 		);
-		intent.setPackage(FBReaderIntents.DEFAULT_PACKAGE);
 		try {
 			myContext.startActivity(intent);
 		} catch (ActivityNotFoundException e) {
